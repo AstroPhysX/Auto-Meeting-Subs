@@ -28,6 +28,8 @@ Assuming that you have installed the GUI you can setup the compression however y
 * Encoding level: Auto
 * Average bitrate: 1500 kb/s
 * Audio: Passthrough
+* Subtitle: Passthrough
+Now click on "Save preset" and save it with the name "Meetings"
 ## Installing WhisperX
 Now this is by far the hardest thing to install. We will be installing anaconda or miniconda first which is a virtual enironment where whisperx is going to live. If you don't know the differnece between miniconda and anaconda, the main difference is that anaconda comes with more data science packages. <br /> 
 So if you don't plan on having any other use for anaconda/miniconda besides for this program, **I reccommend using miniconda.** <br />
@@ -62,5 +64,7 @@ I have found that the followingcommand has worked quite well for my use case:<br
 Start by downloading the python code from my repo: [Python file](https://github.com/AstroPhysX/Auto-Meeting-Subs/blob/main/Auto%20Research%20meeting%20subs%20mkv%20or%20wma.py)<br />
 There are alot of things that you will be needing to setup in this python code prior to being able to use it.<br />
 1. Open the python file in some form of text editor either notepad++ or in my case I am using VScode
-2. Starting from the top of the code, we need to change the install location for ffmpeg. Find the directory or location of where you installed ffmpeg, copy and paste this location into the python code where it says "ffpeg_path=". See image below if confused.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/709e4727-c683-45d3-b9c3-47bbc315f536)
-3. 
+2. Starting from the top of the code, we need to change the install location in the python code for ffmpeg. Find the directory or location of where you installed ffmpeg, copy and paste this location into the python code where it says "ffpeg_path=". See image below if confused.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/709e4727-c683-45d3-b9c3-47bbc315f536)
+3. We now need to change the install location in the python code for Handbrakecli. Keep scrolling down until you see "handbrake_path", copy the path to handbrakecli into the python code. See picture if confused. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/85d64445-71b9-49e5-9dc1-b02f82f679d1)
+
+4. 
