@@ -67,4 +67,6 @@ There are alot of things that you will be needing to setup in this python code p
 2. Starting from the top of the code, we need to change the install location in the python code for ffmpeg. Find the directory or location of where you installed ffmpeg, copy and paste this location into the python code where it says "ffpeg_path=". See image below if confused.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/709e4727-c683-45d3-b9c3-47bbc315f536)
 3. We now need to change the install location in the python code for Handbrakecli. Keep scrolling down until you see "handbrake_path", copy the path to handbrakecli into the python code. See picture if confused. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/85d64445-71b9-49e5-9dc1-b02f82f679d1)
 
-4. 
+4. If you only installed the the handbrakecli and not the handbrake gui you can input the cli command in the "Handbrake_cmd".<br /> If you set both the cli and the GUI for handbrake and have saved your preset name as "Meetings" then you **DO not have to change anything in the Handbrake settings**, If you have changed the name of the preset then all you have change is the following: ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/ebbfd7f3-0bbf-4eef-bb8d-dcb60efb89ff)
+5. 
+
