@@ -38,9 +38,12 @@ Activate the environment `conda activate whisperx`<br />
 10. And finally we can install whisperx: `pip install git+https://github.com/m-bain/whisperx.git`
 11. Finally run the following command: `pip install auto-py-to-exe` We will be using this later to compile our program, that way we can simply run a single .exe file.
 # Setting up whisperX
-For speaker Diarization you will need to generate a Hugging Face access token that you can generate here: [https://huggingface.co/join?next=%2Fsettings%2Ftokens](https://huggingface.co/settings/tokens)https://huggingface.co/settings/tokens <br /> If you don't have an account go through the process to sign up for a free account. Then click on "New Token", the role can be set to read and name the token however you would like.<br />
+For speaker Diarization you will need to generate a Hugging Face access token that you can generate here: [https://huggingface.co/join?next=%2Fsettings%2Ftokens](https://huggingface.co/settings/tokens)https://huggingface.co/settings/tokens <br /> If you don't have an account go through the process to sign up for a free account. Then click on "New Token", the role can be set to read and name the token however you would like. **Copy the token we will be using it to create our whisperx command**<br />
 You will now need to go to each of the following links and accept the user agreements for these models:<br />
-Segmentation:
-Voice Activity Detection (VAD):
-Speaker Diariztion:
+Segmentation: https://huggingface.co/pyannote/segmentation <br />
+Voice Activity Detection (VAD): https://huggingface.co/pyannote/voice-activity-detection <br />
+Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization <br /><br />
+
+We can now build a command for whisperx which we will be using later on when we setup the python code. Here is a text document that has a table in it describing all the possible commands you may want to use:
+
 
