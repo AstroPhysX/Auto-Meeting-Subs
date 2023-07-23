@@ -1,0 +1,70 @@
+FULLSCREEN THESE INSTRUCTIONS TO SEE TABLE
+
+1. Click on Miniconda prompt
+2. Type the following command:
+   activate whisperx
+
+3. Now you can start working with whiperx. Here is an example command you might want to run:
+   whisperx "Movie or audio file path" --model medium.en --output_dir \your\output\directory --align_model WAV2VEC2_ASR_LARGE_LV60K_960H --max_line_width=60 --output_format srt
+   whisperx "S:\Media\TV Shows\Black Sheep Squadron\Season 02\Black Sheep Squadron-s02e08-Fighting Angels.mkv" -f srt -o "G:\movie\whisperx" --model medium.en  --align_model WAV2VEC2_ASR_LARGE_LV60K_960H --max_line_width=60
+   
+   whisperx "C:\Users\Alvin Leluc\Videos\Desktop\june 22.wav" -o "C:\Users\Alvin Leluc\Videos\Desktop\meeting recordings" -f srt --diarize --max_speakers 3 --hf_token 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 --model medium.en
+
+For the movie or audio file you can simply drag and drop the file into the command prompt. all of the --model, --output_dir, --align_model are arguments that can be changed according to your needs. The example above has worked fairly well for me.
+
+Here is the list of arguments you can change along with what their default values are set to.
+
+Arguments_____________________________|Default______________|Choices_____________________________________________________|Help__________________________________________________________________________________________________________________________________________________________________________________
+"--model"                             |default="small"      |[tiny,base,small,medium,large-v1,large-v2]                  |help="name of the Whisper model to use" There also exist english models for all except the large ones
+"--model_dir"                         |default=None         |path                                                        |help="the path to save model files; uses ~/.cache/whisper by default"
+"--device"                            |default="cuda"       |choices=["cuda","cpu"]                                      |help="device to use for PyTorch inference i.e. use cpu or gpu"
+"--device_index"                      |default=0            |number                                                      |help="device index to use for FasterWhisper inference"
+"--batch_size"                        |default=8            |number                                                      |help="device to use for PyTorch inference"
+"--compute_type"                      |default="float16"    |choices=["float16", "float32", "int8"]                      |help="compute type for computation"
+ _____________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________________________________________________
+"--output_dir", "-o"                  |default="."          |path                                                        |help="directory to save the outputs"
+"--output_format", "-f"               |default="all"        |choices=["all", "srt", "vtt", "txt", "tsv", "json", "aud"]  |help="format of the output file; if not specified, all available formats will be produced"
+"--verbose"                           |default=True         |choices=["True", "False"]                                   |help="whether to print out the progress and debug messages"
+ _____________________________________|_____________________|____________________________________________________________|_______________________________________________________________________________________________________________________________________________________________________________
+"--task"                              |default="transcribe" |choices=["transcribe", "translate"]                         |help="whether to perform X->X speech recognition ('transcribe') or X->English translation ('translate')"
+"--language"                          |default=None         |choices=sorted(LANGUAGES.keys())+sorted([lang code.title()) |help="language spoken in the audio, specify None to perform language detection"
+ _____________________________________|_____________________|____________________________________________________________|________________________________________________________________________________________________________________________________________________________________________________
+"--align_model"                       |default=None         |look it up                                                  |help="Name of phoneme-level ASR model to do alignment"
+"--interpolate_method"                |default="nearest"    |choices=["nearest", "linear", "ignore"]                     |help="For word .srt, method to assign timestamps to non-aligned words, or merge them into neighbouring."
+"--no_align"                          |action='store_true'  |                                                            |help="Do not perform phoneme alignment"
+"--return_char_alignments"            |action='store_true'  |                                                            |help="Return character-level alignments in the output json file"
+______________________________________|_____________________|____________________________________________________________|___________________________________________________________________________________________________________________________________________________________________________________
+"--vad_onset"                         |default=0.500        |decimal values                                              |help="Onset threshold for VAD (see pyannote.audio), reduce this if speech is not being detected"
+"--vad_offset"                        |default=0.363        |decimal values                                              |help="Offset threshold for VAD (see pyannote.audio), reduce this if speech is not being detected."
+______________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________________________________________________________
+"--diarize"                           |action="store_true"  |                                                            |help="Apply diarization to assign speaker labels to each segment/word"
+"--min_speakers"                      |default=None         |integer number                                              |help="Minimum number of speakers to in audio file"
+"--max_speakers"                      |default=None         |integer number                                              |help="Maximum number of speakers to in audio file"
+______________________________________|_____________________|____________________________________________________________|___________________________________________________________________________________________________________________________________________________________________________________
+"--temperature"                       |default=0            |integer number                                              |help="temperature to use for sampling"
+"--best_of"                           |default=5            |integer number                                              |help="number of candidates when sampling with non-zero temperature"
+"--beam_size"                         |default=5            |integer number                                              |help="number of beams in beam search, only applicable when temperature is zero"
+"--patience"                          |default=None         |decimal values                                              |help="optional patience value to use in beam decoding, as in https://arxiv.org/abs/2204.05424, the default (1.0) is equivalent to conventional beam search"
+"--length_penalty"                    |default=1.0          |decimal values                                              |help="optional token length penalty coefficient (alpha) as in https://arxiv.org/abs/1609.08144, uses simple length normalization by default"
+______________________________________|_____________________|____________________________________________________________|_________________________________________________________________________________________________________________________________________________________________________________
+"--suppress_tokens"                   |default="-1"         |                                                            |help="comma-separated list of token ids to suppress during sampling; '-1' will suppress most special characters except common punctuations"
+"--suppress_numerals"                 |action="store_true"  |                                                            |help="whether to suppress numeric symbols and currency symbols during sampling, since wav2vec2 cannot align them correctly"
+______________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________________________________________________________________
+"--initial_prompt"                    |default=None         |                                                            |help="optional text to provide as a prompt for the first window."
+"--condition_on_previous_text"        |default=False        |choices=["True", "False"]                                   |help="if True, provide the previous output of the model as a prompt for the next window; disabling may make the text inconsistent across windows, but the model becomes less prone to getting stuck                                       |                     |                                                            |in a failure loop"
+"--fp16"                              |default=True         |choices=["True", "False"]                                   |help="whether to perform inference in fp16; True by default"
+______________________________________|_____________________|____________________________________________________________|___________________________________________________________________________________________________________________________________________
+"--temperature_increment_on_fallback" |default=0.2          |decimal values                                              |help="temperature to increase when falling back when the decoding fails to meet either of the thresholds below"
+"--compression_ratio_threshold"       |default=2.4          |decimal values                                              |help="if the gzip compression ratio is higher than this value, treat the decoding as failed"
+"--logprob_threshold"                 |default=-1.0         |decimal values                                              |help="if the average log probability is lower than this value, treat the decoding as failed"
+"--no_speech_threshold"               |default=0.6          |decimal values                                              |help="if the probability of the <|nospeech|> token is higher than this value AND the decoding has failed due to `logprob_threshold`, consider the segment as silence"
+______________________________________|_____________________|____________________________________________________________|__________________________________________________________________________________________________________________________________________________________________________________________________
+"--max_line_width"                    |default=None         |number of characters                                        |help="(not possible with --no_align) the maximum number of characters in a line before breaking the line"
+"--max_line_count"                    |default=None         |number                                                      |help="(requires --no_align) the maximum number of lines in a segment"
+"--highlight_words"                   |default=False        |choices=["True", "False"]                                   |help="(requires --word_timestamps True) underline each word as it is spoken in srt and vtt"
+"--segment_resolution"                |default="sentence"   |choices=["sentence", "chunk"]                               | help="(not possible with --no_align) the maximum number of characters in a line before breaking the line"
+______________________________________|_____________________|____________________________________________________________|_________________________________________________________________________________________________________________________________________________________________________________________
+"--threads"                           |default=0            |integer number                                              |help="number of threads used by torch for CPU inference; supercedes MKL_NUM_THREADS/OMP_NUM_THREADS"
+______________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________
+"--hf_token"                          |default=None         |Token                                                       |help="Hugging Face Access Token to access PyAnnote gated models"
+--hf_token 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
