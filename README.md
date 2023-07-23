@@ -37,5 +37,10 @@ Activate the environment `conda activate whisperx`<br />
 9. Before installing whisperx we need to install all the tools that it uses with the following command if you have an nvidia:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia`<br /><br /> Unfortunately if you are using an AMD graphics card you will have do some research if they have implemented pytorch recently otherwise you can use the following command if you are on AMD:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c pytorch`
 10. And finally we can install whisperx: `pip install git+https://github.com/m-bain/whisperx.git`
 11. Finally run the following command: `pip install auto-py-to-exe` We will be using this later to compile our program, that way we can simply run a single .exe file.
-# Setting Up Python Program for Your use
+# Setting up whisperX
+For speaker Diarization you will need to generate a Hugging Face access token that you can generate here: [https://huggingface.co/join?next=%2Fsettings%2Ftokens](https://huggingface.co/settings/tokens)https://huggingface.co/settings/tokens <br /> If you don't have an account go through the process to sign up for a free account. Then click on "New Token", the role can be set to read and name the token however you would like.<br />
+You will now need to go to each of the following links and accept the user agreements for these models:<br />
+Segmentation:
+Voice Activity Detection (VAD):
+Speaker Diariztion:
 
