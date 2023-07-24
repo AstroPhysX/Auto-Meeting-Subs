@@ -67,4 +67,3 @@ ______________________________________|_____________________|___________________
 "--threads"                           |default=0            |integer number                                              |help="number of threads used by torch for CPU inference; supercedes MKL_NUM_THREADS/OMP_NUM_THREADS"
 ______________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________
 "--hf_token"                          |default=None         |Token                                                       |help="Hugging Face Access Token to access PyAnnote gated models"
---hf_token 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
