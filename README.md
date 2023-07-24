@@ -67,6 +67,19 @@ There are alot of things that you will be needing to setup in this python code p
 2. Starting from the top of the code, we need to change the install location in the python code for ffmpeg. Find the directory or location of where you installed ffmpeg, copy and paste this location into the python code where it says "ffpeg_path=". See image below if confused.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/709e4727-c683-45d3-b9c3-47bbc315f536)
 3. We now need to change the install location in the python code for Handbrakecli. Keep scrolling down until you see "handbrake_path", copy the path to handbrakecli into the python code. See picture if confused. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/85d64445-71b9-49e5-9dc1-b02f82f679d1)
 
-4. If you only installed the the handbrakecli and not the handbrake gui you can input the cli command in the "Handbrake_cmd".<br /> If you set both the cli and the GUI for handbrake and have saved your preset name as "Meetings" then you **DO not have to change anything in the Handbrake settings**, If you have changed the name of the preset then all you have change is the following: ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/ebbfd7f3-0bbf-4eef-bb8d-dcb60efb89ff)
-5. 
+4. If you only installed the the handbrakecli and not the handbrake gui you can input the cli command in the "Handbrake_cmd".<br /> If you set both the cli and the GUI for handbrake and have saved your preset name as "Meetings" then you **DO not have to change anything in the python code**, If you have changed the name of the preset then all you have change is the following: ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/ebbfd7f3-0bbf-4eef-bb8d-dcb60efb89ff)
+5. Keep scrolling down until you see "output_dir=" change this to whereever you would like the output directory to be. See picture of code for output directory. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/b56fca4d-921a-4420-a34e-74081dc19ba7)
+6. Finally the last thing that needs to change is the whisperx command.
+<br/>
+**Optional**: You can change the name of the ouput files. Currently it is set to be the following "Meeting yy.mm.dd" example:<br /> `Meeting 2023.07.23.mkv` or `Meeting 2023.07.23.wma`<br />
+The way you can change this is by modifying the following in the code:![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/02b6dbe7-f749-4b5f-8e1d-d39f15c6824a) <br /> If you don't want output to called "Meeting" simply change that word to whatever you'd like. Now you want a different format for the date lets, you prefer month.day.year then replace the underlined portion with `%m.%d.%Y` replace the capital Y to a lower case y if you don't want a 4 digit year.<br />
+## Compiling the python code into an exe file
+If you already use and run python regularly this final part might not be necessary for you, but it may make your life way easier to simply create an exe file. Unfortunately, creating an exe file from a python using this method might trigger your antivirus since it will be an unsigned .exe file.<br />
+1. Open your start menu and type in "cmd" and open a command prompt
+2. Run the command `conda activate whisperx`
+3. Run the command `auto-py-to-exe` this will open a GUI for auto-py-to-exe
+4. Select the python file that you modified
+5. **optional** 
+
+
 
