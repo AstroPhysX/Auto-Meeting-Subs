@@ -67,7 +67,7 @@ Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization <br /><b
 You can build a command for whisperx which you can implement into the python code, but you will need to compile it into an exe file using auto-py-to-exe. Here is a text document that has a table in it describing all the possible commands you may want to use: [WhisperX commands](https://github.com/AstroPhysX/Auto-Meeting-Subs/blob/main/WhisperX%20commands.txt)
 I have found that the following command has worked quite well for my use case:<br/>
 `whisperx "{output_wav_file}" -o "{output_dir}" -f srt --diarize --max_speakers {num_speakers} --hf_token {token} --model medium.en {compute_type_otpions}`
-## Setting up 
+## Setting up Auto-Meeting-Subs
 Start by downloading the 
 
 
