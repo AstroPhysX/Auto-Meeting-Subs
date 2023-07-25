@@ -72,7 +72,7 @@ You can build a command for whisperx which you can implement into the python cod
 I have found that the following command has worked quite well for my use case:<br/>
 `whisperx "{output_wav_file}" -o "{output_dir}" -f srt --diarize --max_speakers {num_speakers} --hf_token {token} --model medium.en {compute_type_otpions}`
 ## Setting up Auto-Meeting-Subs
-Start by downloading Auto-Meeting-Subs.exe from [here](https://github.com/AstroPhysX/Auto-Meeting-Subs/releases/tag/Releases). See picture on where to click to download. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d3d48cfe-ba05-48cc-976a-85a28ea58f1d) <br /><br />
+Start by downloading Auto-Meeting-Subs.exe from [here](https://github.com/AstroPhysX/Auto-Meeting-Subs/releases). See picture on where to click to download. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d3d48cfe-ba05-48cc-976a-85a28ea58f1d) <br /><br />
 
 I recommend you save the exe file in a safe place and somewhere where it is self contained i.e. in its own folder.<br />
 When you are going to run the program for the first time it is going to prompt you for the initial set up.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/6203f659-1843-4a56-8515-d33dc355b560)
