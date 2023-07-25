@@ -139,7 +139,7 @@ def main():
     activate_cmd = "conda activate whisperx"
     #CHANGE THIS COMMAND, WITH WHAT EVER SETTINGS YOU WOULD LIKE FOR WHISPERX, REFER TO WHISPERX COMMANDS
     whisperx_cmd = (
-        f'whisperx "{output_wav_file}" -o "{output_dir}" -f srt --diarize --max_speakers {num_speakers} --hf_token {token} --model medium {compute_type_otpions}'
+        f'whisperx "{output_wav_file}" -o "{output_dir}" -f srt --diarize --max_speakers {num_speakers} --hf_token {token} --model medium.en {compute_type_otpions}'
     )
     print("Running whisperx to convert audio to subtitles and seperating voices...")
     cmd = f"{activate_cmd} && {whisperx_cmd} && conda deactivate"
