@@ -22,7 +22,7 @@ def create_config(config_file):
         'output_dir': input("Enter the output directory path: ").strip('"'),
     }
     while True:
-        nvidia_gpu = input("Do you have an NVIDIA GPU? (y/n): ").lower()
+        nvidia_gpu = input("Do you have a 10 series or above NVIDIA GPU ? (y/n): ").lower()
         if nvidia_gpu == 'y' or nvidia_gpu == 'n':
             break
         else:
@@ -30,6 +30,24 @@ def create_config(config_file):
 
     config['GPU'] = {
         'nvidia_gpu': nvidia_gpu
+    }
+    while True:
+        english = input("Are the meetings in english? (y/n): ").lower()
+        if english == 'y' or english == 'n':
+            break
+        else:
+            print("Invalid input. Please enter 'y' or 'n'.")
+    config['LANGUAGE'] = {
+        'English': english
+    }
+    while True:
+        sub_format = input("What subtitle format would like to use? (srt, vtt, txt, tsv, json, aud) choose SRT if you don't know what this is: ").lower()
+        if sub_format == 'srt' or sub_format == 'vtt' or sub_format == 'txt' or sub_format == 'tsv' or sub_format == 'json' or sub_format == 'aud':
+            break
+        else:
+            print("Invalid input. Please enter srt or vtt or txt or tsv or json or aud.")
+    config['SUBTITLE'] = {
+        'Sub_format': sub_format
     }
     print("\nFirst time configuration complete!!\n")
     with open(config_file, 'w') as cfgfile:
@@ -45,24 +63,38 @@ def read_config(config_file):
     handbrake_preset = config['HAND_BRAKE']['preset_name']
     output_dir = config['OUTPUT'].get('output_dir')
     nvidia_gpu = config['GPU']['nvidia_gpu']
-    return paths, token, handbrake_preset, output_dir, nvidia_gpu
+    English = config['LANGUAGE']['English']
+    subtitle_format = config['SUBTITLE']['Sub_format']
+    
+    return paths, token, handbrake_preset, output_dir, nvidia_gpu , English, subtitle_format
 
+#Function to extract audio from MKV file
 def extract_audio_from_mkv(mkv_file_path, output_wav_file, ffmpeg_path):
     print("ffmpeg is extracting the audio from your video file...")
     # Use ffmpeg to extract audio from the MKV file and save it as WAV
     subprocess.run([ffmpeg_path, "-i", mkv_file_path, "-vn", "-acodec", "pcm_s16le", output_wav_file],stderr=subprocess.DEVNULL)
     print("ffmpeg has extracted the audio from", mkv_file_path,"\n")
 
+#Function to convert WMA audio to WAV
 def extract_audio_from_wma(wma_file_path, output_wav_file, ffmpeg_path):
     print("ffmpeg is extracting the audio from your WMA file...")
     # Use ffmpeg to extract audio from the WMA file and save it as WAV
     subprocess.run([ffmpeg_path, "-i", wma_file_path, "-vn", "-acodec", "pcm_s16le", output_wav_file], stderr=subprocess.DEVNULL)
     print("ffmpeg has extracted the audio from", wma_file_path,"\n")
-    
+
+#Function to get the file's date from its metadata
 def get_creation_date(mkv_file_path):
     # Get the creation date of the MKV file
     return os.path.getctime(mkv_file_path)
 
+#Function to compress/convert the audio to mp3
+def compressing_wma_to_mp3(wma_file_path, output_mp3_file, ffmpeg_path):
+    print("ffmpeg is extracting the audio from your WMA file and converting it to MP3...")
+    # Use ffmpeg to extract audio from the WMA file and save it as MP3
+    subprocess.run([ffmpeg_path, "-i", wma_file_path, "-vn", "-acodec", "libmp3lame", output_mp3_file], stderr=subprocess.DEVNULL)
+    print("ffmpeg has extracted and converted the audio to MP3 from", wma_file_path, "\n")
+
+#Function to compress the orginal video using handbrake
 def compress_mkv_with_handbrake(mkv_file_path, output_compressed_mkv, handbrake_path, handbrake_preset):
 
     # Set the desired compression options using HandBrakeCLI
@@ -86,94 +118,121 @@ def main():
         create_config(config_file)
 
     # Read parameters from the config.ini file
-    paths, token, handbrake_preset, output_dir, nvidia_gpu = read_config(config_file)  # Updated to unpack 'handbrake_preset'
+    paths, token, handbrake_preset, output_dir, nvidia_gpu, English, sub_format = read_config(config_file)  #extracts the settings from the config file
     ffmpeg_path = paths['ffmpeg_path']
     handbrake_path = paths['handbrake_path']
     compute_type_otpions="--compute_type int8" if nvidia_gpu == "n" else ""
+    model_language=".en" if English == 'y' else ''
     
-    # Prompt user for input
-    input_file = input("Enter the file path of the MKV or WMA recording: ").strip('"')
-    num_speakers = int(input("Enter the number of people talking: "))
+    while True:
+        # Prompt user for input
+        input_file = input("Enter the file path of the MKV or WMA recording: ").strip('"')
+        min_num_speakers = int(input("Enter the min number of people talking: "))
+        max_num_speakers = int(input("Enter the max number of people talking: "))
+        
     
-    # Get the directory of the input file
-    file_directory = os.path.dirname(input_file)
+        # Get the directory of the input file
+        file_directory = os.path.dirname(input_file)
     
-    # Get the date from the metadata file
-    date = get_creation_date(input_file)
-    if not date:
-        print("Date not found in the metadata.")
-        return
+        # Get the date from the metadata file
+        date = get_creation_date(input_file)
+        if not date:
+            print("Date not found in the metadata.")
+            return
     
-    # Format the date as yy/mm/dd
-    formatted_date = time.strftime("%Y.%m.%d", time.localtime(date))
+        # Format the date as yy/mm/dd
+        formatted_date = time.strftime("%Y.%m.%d", time.localtime(date))
 
-    # Determine if the input file is MKV or WMA
-    is_mkv = input_file.lower().endswith('.mkv')
-    is_wma = input_file.lower().endswith('.wma')
+        # Determine if the input file is MKV or WMA
+        is_mkv = input_file.lower().endswith('.mkv')
+        is_wma = input_file.lower().endswith('.wma')
     
-    if is_mkv:
-        # Construct the new filename with the date and rename the .mkv file
-        filename = f"Meeting {formatted_date}"
-        new_filename = f"{filename}.mkv"
-        output_wav_file = os.path.join(file_directory, f"{filename}.wav")   
-    elif is_wma:
-        # Construct the new filename with the date and rename the .wma file
-        filename = f"Meeting {formatted_date}"
-        new_filename = f"{filename}.wma"
-        output_wav_file = os.path.join(file_directory, f"{filename}.wav")
-    else:
-        print("Invalid file format. Only MKV and WMA formats are supported.")
-        return
+        if is_mkv:
+            # Construct the new filename with the date and rename the .mkv file
+            filename = f"Meeting {formatted_date}"
+            new_filename = f"{filename}.mkv"
+            output_wav_file = os.path.join(file_directory, f"{filename}.wav")   
+        elif is_wma:
+            # Construct the new filename with the date and rename the .wma file
+            filename = f"Meeting {formatted_date}"
+            new_filename = f"{filename}.wma"
+            output_wav_file = os.path.join(file_directory, f"{filename}.wav")
+            output_mp3_file = os.path.join(file_directory, f"{filename}.mp3")
+        else:
+            print("Invalid file format. Only MKV and WMA formats are supported.")
+            return
     
-    new_file_path = os.path.join(file_directory, new_filename)
-    os.rename(input_file, new_file_path)
+        new_file_path = os.path.join(file_directory, new_filename)
+        os.rename(input_file, new_file_path)
 
-    if is_mkv:
-        # Convert the MKV file to WAV
-        extract_audio_from_mkv(new_file_path, output_wav_file, ffmpeg_path)
-    elif is_wma:
-        # Convert the WMA file to WAV
-        extract_audio_from_wma(new_file_path, output_wav_file, ffmpeg_path)
+        if is_mkv:
+            # Convert the MKV file to WAV
+            extract_audio_from_mkv(new_file_path, output_wav_file, ffmpeg_path)
+        elif is_wma:
+            # Convert the WMA file to WAV
+            extract_audio_from_wma(new_file_path, output_wav_file, ffmpeg_path)
     
-    # Run the commands using miniconda prompt
-    activate_cmd = "conda activate whisperx"
-    #CHANGE THIS COMMAND, WITH WHAT EVER SETTINGS YOU WOULD LIKE FOR WHISPERX, REFER TO WHISPERX COMMANDS
-    whisperx_cmd = (
-        f'whisperx "{output_wav_file}" -o "{output_dir}" -f srt --diarize --max_speakers {num_speakers} --hf_token {token} --model medium.en {compute_type_otpions}'
-    )
-    print("Running whisperx to convert audio to subtitles and seperating voices...")
-    cmd = f"{activate_cmd} && {whisperx_cmd} && conda deactivate"
-    subprocess.run(cmd, shell=True, check=True)
-    print("\nSubtitles finished.\n")
+        # Run the commands using miniconda prompt
+        activate_cmd = "conda activate whisperx"
     
-    #Removing the WAV file that was created from MKV to produce subtitles
-    print("Cleaning up and moving subtitles to:",output_dir)
-    os.remove(output_wav_file)
+        #CHANGE THIS COMMAND, WITH WHAT EVER SETTINGS YOU WOULD LIKE FOR WHISPERX, REFER TO WHISPERX COMMANDS
+        whisperx_cmd = (
+            f'whisperx "{output_wav_file}" -o "{output_dir}" -f {sub_format} --diarize --max_speakers {max_num_speakers} --min_speakers {min_num_speakers} --hf_token {token} --model medium{model_language} {compute_type_otpions}'
+        )
+        print("Running whisperx to convert audio to subtitles and seperating voices...")
+        print('\n\n',whisperx_cmd,'\n')
+        cmd = f"{activate_cmd} && {whisperx_cmd} && conda deactivate"
+        subprocess.run(cmd, shell=True, check=True)
+        print("\nSubtitles finished.\n")
     
-    if is_mkv:
-        #Compressing mkv file with handbrake
-        compress_mkv_with_handbrake(new_file_path, os.path.join(output_dir, new_filename), handbrake_path, handbrake_preset)
+        #Removing the WAV file that was created from MKV to produce subtitles
+        print("Cleaning up and moving subtitles to:",output_dir)
     
-        # Ask the user if they want to remove the original MKV file
+        if is_mkv:
+            #Compressing mkv file with handbrake
+            compress_mkv_with_handbrake(new_file_path, os.path.join(output_dir, new_filename), handbrake_path, handbrake_preset)
+            os.remove(output_wav_file)
+            # Ask the user if they want to remove the original MKV file
+            while True:
+                remove_original = input("Do you want to remove the original MKV file? (y/n): ").strip().lower()
+                if remove_original == 'y':
+                    os.remove(new_file_path)
+                    print("\nOriginal MKV file removed.The subtitles and compressed video are in:",output_dir)
+                    break
+                elif remove_original == 'n':
+                    print("Original MKV file will be kept.\n")
+                    print("Original MKV has been renamed and is in",new_file_path," The subtitles and compressed video are in:",output_dir)
+                    break
+                else:
+                    print("Invalid input. Please enter 'y' or 'n'.")
+        elif is_wma:
+            os.remove(output_wav_file)
+            compressing_wma_to_mp3(new_file_path, output_mp3_file, ffmpeg_path)
+        
+            print("\nMoving Audio recording to:",output_dir)
+            shutil.move(output_mp3_file, os.path.join(output_dir, f"{filename}.mp3"))
+        
+            # Ask the user if they want to remove the original WMA file
+            while True:
+                remove_original = input("Do you want to remove the original WMA file? (y/n): ").strip().lower()
+                if remove_original == 'y':
+                    os.remove(new_file_path)
+                    print("\nOriginal WMA file removed.The subtitles and compressed video are in:",output_dir)
+                    break
+                elif remove_original == 'n':
+                    print("Original WMA file will be kept.\n")
+                    print("Original WMA has been renamed and is in",new_file_path," The subtitles and compressed video are in:",output_dir)
+                    break
+                else:
+                    print("Invalid input. Please enter 'y' or 'n'.")
+        
+        more_meetings = input("\nFinished processing meeting.\nDo you have more meetings to transcribe? (y/n): ").lower()
         while True:
-            remove_original = input("Do you want to remove the original MKV file? (y/n): ").strip().lower()
-            if remove_original == 'y':
-                os.remove(new_file_path)
-                print("\nOriginal MKV file removed.The subtitles and compressed video are in:",output_dir)
+            if more_meetings == 'n':
+                return
+            elif more_meetings == 'y':
                 break
-            elif remove_original == 'n':
-                print("Original MKV file will be kept.\n")
-                print("Original MKV has been renamed and is in",new_file_path," The subtitles and compressed video are in:",output_dir)
-                break
-            else:
-                print("Invalid input. Please enter 'y' or 'n'.")
-    elif is_wma:
-        print("\nMoving Audio recording to:",output_dir)
-        shutil.move(new_file_path, os.path.join(output_dir, new_filename))
-
-    
-    
-    input("Finished processing meeting.\nPress enter to close...")
+        
 
 if __name__ == "__main__":
     main()

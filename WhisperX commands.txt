@@ -20,7 +20,9 @@ Arguments_____________________________|Default______________|Choices____________
 "--device"                            |default="cuda"       |choices=["cuda","cpu"]                                      |help="device to use for PyTorch inference i.e. use cpu or gpu"
 "--device_index"                      |default=0            |number                                                      |help="device index to use for FasterWhisper inference"
 "--batch_size"                        |default=8            |number                                                      |help="device to use for PyTorch inference"
-"--compute_type"                      |default="float16"    |choices=["float16", "float32", "int8"]                      |help="compute type for computation"
+"--compute_type"                      |default="float16"    |choices=["float16", "float32", "int8"]                      |help= look up your gpu in here and look at the value: https://developer.nvidia.com/cuda-gpus#compute
+                                      |                     |                                                            |      then check where that value falls in the chart and see if it is compatible with FP16 (float16), FP32 (float32), int8
+                                      |                     |                                                            |      https://docs.nvidia.com/deeplearning/tensorrt/support-matrix/index.html#hardware-precision-matrix
  _____________________________________|_____________________|____________________________________________________________|_____________________________________________________________________________________________________________________________________________________________________________
 "--output_dir", "-o"                  |default="."          |path                                                        |help="directory to save the outputs"
 "--output_format", "-f"               |default="all"        |choices=["all", "srt", "vtt", "txt", "tsv", "json", "aud"]  |help="format of the output file; if not specified, all available formats will be produced"
