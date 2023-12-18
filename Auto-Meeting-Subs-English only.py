@@ -49,6 +49,9 @@ def create_config(config_file):
     config['SUBTITLE'] = {
         'Sub_format': sub_format
     }
+    config['DEV'] = {
+        'Developer_debug': 'n'
+    }
     print("\nFirst time configuration complete!!\n")
     with open(config_file, 'w') as cfgfile:
         config.write(cfgfile)
@@ -65,8 +68,8 @@ def read_config(config_file):
     nvidia_gpu = config['GPU']['nvidia_gpu']
     English = config['LANGUAGE']['English']
     subtitle_format = config['SUBTITLE']['Sub_format']
-    
-    return paths, token, handbrake_preset, output_dir, nvidia_gpu , English, subtitle_format
+    developer = config['DEV']['Developer_debug']
+    return paths, token, handbrake_preset, output_dir, nvidia_gpu , English, subtitle_format,developer
 
 #Function to extract audio from MKV file
 def extract_audio_from_mkv(mkv_file_path, output_wav_file, ffmpeg_path):
@@ -118,11 +121,12 @@ def main():
         create_config(config_file)
 
     # Read parameters from the config.ini file
-    paths, token, handbrake_preset, output_dir, nvidia_gpu, English, sub_format = read_config(config_file)  #extracts the settings from the config file
+    paths, token, handbrake_preset, output_dir, nvidia_gpu, English, sub_format,developer = read_config(config_file)  #extracts the settings from the config file
     ffmpeg_path = paths['ffmpeg_path']
     handbrake_path = paths['handbrake_path']
     compute_type_otpions="--compute_type int8" if nvidia_gpu == "n" else ""
     model_language=".en" if English == 'y' else ''
+    dev=False if developer == 'n' else True
     
     while True:
         # Prompt user for input
@@ -179,10 +183,14 @@ def main():
         whisperx_cmd = (
             f'whisperx "{output_wav_file}" -o "{output_dir}" -f {sub_format} --diarize --max_speakers {max_num_speakers} --min_speakers {min_num_speakers} --hf_token {token} --model medium{model_language} {compute_type_otpions}'
         )
-        print("Running whisperx to convert audio to subtitles and seperating voices...")
-        print('\n\n',whisperx_cmd,'\n')
+        print("Running whisperx to convert audio to subtitles and seperating voices this may take a while...")
+        
         cmd = f"{activate_cmd} && {whisperx_cmd} && conda deactivate"
-        subprocess.run(cmd, shell=True, check=True)
+        if dev:
+            print(whisperx_cmd,'\n')
+            subprocess.run(cmd, shell=True, check=True)
+        else:
+            subprocess.run(cmd, shell=True, check=True,stderr=subprocess.DEVNULL,stdout=subprocess.DEVNULL)
         print("\nSubtitles finished.\n")
     
         #Removing the WAV file that was created from MKV to produce subtitles
