@@ -1,7 +1,7 @@
 # Auto-Meeting-Subs
 ## Description
-Automatically converts meeting subs to WAV file which then runs through an instance of whisperx to create srt subtitles, then compresses the video using handbrakecli. Then moves and renames compressed video file and subtitles to output directory.
-The goal behind this program was to simply create a transcript of what people said in a meeting to make my life easier to parse through the meeting and figure out when things were said, that way I can quickly skip to that part of the video or meeting. This prgoram does 3 things: it converts the audioto the WAV format from either and MKV video file or from a WMA audio file (WMA is the format that onenote records in), then the program uses the newly converted audio to run a command in whisperx which creates an SRT subtitle file with speech diarization, once the subtitiles have been created the program then runs handbrake which compress the video file, finally the program renames the video and subtitle file to "Meeting yy.mm.dd" where the date is creation date of the file.
+Automatically converts meeting subs to WAV file which then runs through an instance of whisperx to create srt subtitles, then compresses the video using handbrakecli. Then moves and renames compressed video file and subtitles to output directory.<br /><br />
+The goal behind this program was to simply create a transcript of what people said in a meeting to make my life easier to parse through the meeting and figure out when things were said, that way I can quickly skip to that part of the video or meeting. This prgoram does 3 things: it converts the audioto the WAV format from either and MKV video file or from a WMA audio file (WMA is the format that onenote records in), then the program uses the newly converted audio to run a command in whisperx which creates a subtitle file with speech diarization, once the subtitiles have been created the program then runs handbrake which compress the video file, finally the program renames the video and subtitle file to "Meeting yy.mm.dd" where the date is creation date of the file.
 # Install process
 There are 3 prerequisite programs to run this program. These programs are ffmpeg, whisperX and Handbrakecli. We will start with the easiest thing to install and install the hardest thing last.
 ### Installing ffmpeg
@@ -81,13 +81,33 @@ When you are going to run the program for the first time it is going to prompt y
 3. You will now be asked the name of the Handbrake preset you made in the Handbrake GUI. If you named it that the same thing as me then this should be "Meetings"
 4. You are now going to be asked to for the Hugging Face Api token. You can get this token from [here](https://huggingface.co/settings/tokens) Make sure that you have followed the steps instructions for [Setting up WhisperX](#setting-up-whisperx) 
 5. Now you are going to be asked where you would like the recording and subtitles to be outputed to. This is wherever you would like things to be saved. I suggest navigating in file explorer to the location on your computer that you would like the meetings to be saved, for example `C:\Users\Alvin Leluc\Videos\Meetings` and simply copy the directory in the adress bar of file explorer.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/db7f140f-f85f-46aa-9bdf-c3de8552b276)
-6. The last thing it is going to ask you for the initial configuration is if you have an NVIDIA GPU simply answer "y" or "n".<br />
+6. It is going to ask you for the initial configuration is if you have an NVIDIA GPU simply answer "y" or "n".<br />
     * If you do not know and used the command `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia` while installing WhisperX then enter y. 
     * If instead you have an AMD GPU, no GPU, or even if you ran this command `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c pytorch` during the the WhisperX installation enter n.
 <br />
+7. If your meetings are going to be in english simply answer "y".
+  If the meetings are in any other language than english answer"n" and the program will automatically detect the spoken language.
+<br />
+8. Finally you are going to asked wich subtitle format you would like to use.<br />
+    * srt: (recommend) since it is a very light weight format that is commonly used for movie subtitles. Includes time stamps.
+    * vtt: this is also fairly light weight subtitle format that is commonly used for online videos such as youtube. Includes time stamps.
+
+    * txt: is more of a transcript and does not seperate people and no time stamps.
+    * tsv: no seperations between people. Includes time stamps but unclear.
+    * json: if you need json subtitles then you know who you are.
+    * aud: seperates people and includes time stamps.
+<br /> 
 You are done setting up Auto-Meeting-Subs!!!<br /> <br />
 
 If at anytime you would like to change the settigns that you setup for Auto-Meeting-Subs.exe, you can simply delete the config.ini file that is in the same folder at Auto-Meeting-Subs.exe. This will reset all the configurations you madewhen you first ran the program, and the next time you run the program go through the initial setup process again. **Try doing this if you are running into any sort of issues**<br />
+
+# Debuging
+If your run the program and get the following message:
+
+You are going to want to go into the config.ini file to see what the error is that you are running into is. You can do this by going to the location that Auto-Meeting-Subs.exe is saved and open up the config.ini file using notepad.
+
+Change the very last line where it says `developer_debug = n` to `developer_debug = y`
+Now when you run the program you will see all the errors that may occur when running ffmpeg, Whisperx or even handbrake.
 # Uninstalling Everything
 1. Start by deleting both the Auto-Meeting-Subs.exe and the config.ini files.
 2. Go to your command prompt, by going the start menu and typing cmd and open a command prompt and type the following command <br /> `conda remove --name whisperx --all`
