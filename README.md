@@ -75,7 +75,8 @@ I have found that the following command has worked quite well for my use case:<b
 Start by downloading Auto-Meeting-Subs.exe from [here](https://github.com/AstroPhysX/Auto-Meeting-Subs/releases). See picture on where to click to download. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d3d48cfe-ba05-48cc-976a-85a28ea58f1d) <br /><br />
 
 I recommend you save the exe file in a safe place and somewhere where it is self contained i.e. in its own folder.<br />
-When you are going to run the program for the first time it is going to prompt you for the initial set up.![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/6203f659-1843-4a56-8515-d33dc355b560)
+When you are going to run the program for the first time it is going to prompt you for the initial set up.![intial setup](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/746e9a86-f1bf-4950-81e7-796c232b44af)
+
 1. It is going to ask you for the location of ffmpeg which was the first program we downloaded and extracted. You go to that folder, then go into the bin folder and then you drag and drop the ffmpeg.exe file into the command prompt.
 2. Next thing it is going to ask you is for the HandbrakeCLI.exe location. If you follwoed the instructions the HandbrakeCLI should be in the same location that Handbrake was installed to, otherwise it may be in your downloads directoy. Note handbrake normally installs to C:\Program Files\Handbrake\. Similarly to ffmpeg.exe you can drag and drop the HandBrakeCLI.exe file into the command prompt.
 3. You will now be asked the name of the Handbrake preset you made in the Handbrake GUI. If you named it that the same thing as me then this should be "Meetings"
@@ -91,22 +92,26 @@ When you are going to run the program for the first time it is going to prompt y
 8. Finally you are going to asked wich subtitle format you would like to use.<br />
     * srt: (recommend) since it is a very light weight format that is commonly used for movie subtitles. Includes time stamps.
     * vtt: this is also fairly light weight subtitle format that is commonly used for online videos such as youtube. Includes time stamps.
-
     * txt: is more of a transcript and does not seperate people and no time stamps.
     * tsv: no seperations between people. Includes time stamps but unclear.
     * json: if you need json subtitles then you know who you are.
     * aud: seperates people and includes time stamps.
+   You can see how the different files look in the [Example Subtitle files with video](https://github.com/AstroPhysX/Auto-Meeting-Subs/tree/main/Example%20Subtitle%20files%20with%20video)
 <br /> 
 You are done setting up Auto-Meeting-Subs!!!<br /> <br />
 
 If at anytime you would like to change the settigns that you setup for Auto-Meeting-Subs.exe, you can simply delete the config.ini file that is in the same folder at Auto-Meeting-Subs.exe. This will reset all the configurations you madewhen you first ran the program, and the next time you run the program go through the initial setup process again. **Try doing this if you are running into any sort of issues**<br />
 
 # Debuging
-If your run the program and get the following message:
+If you run the program and get the following message:
+![debug](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/0b3d5dcb-7f2b-400d-8168-57497221797c)
 
-You are going to want to go into the config.ini file to see what the error is that you are running into is. You can do this by going to the location that Auto-Meeting-Subs.exe is saved and open up the config.ini file using notepad.
+You are going to want to go into the config.ini file to be able to turn on the debugging mode and see errors. You can do this by going to the location that Auto-Meeting-Subs.exe is saved and open up the config.ini file using notepad.
+![config ini loc](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/6b9faf96-f1d7-47b1-8496-c06966e69e86)
 
 Change the very last line where it says `developer_debug = n` to `developer_debug = y`
+![developer_debug](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/62c9fe9c-5edc-41c7-937a-acc2fec903f3)
+
 Now when you run the program you will see all the errors that may occur when running ffmpeg, Whisperx or even handbrake.
 # Uninstalling Everything
 1. Start by deleting both the Auto-Meeting-Subs.exe and the config.ini files.
