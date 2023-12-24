@@ -126,7 +126,7 @@ def compress_mkv_with_handbrake(mkv_file_path, output_compressed_mkv, handbrake_
     subprocess.run(handbrake_cmd, stderr=subprocess.DEVNULL)
     print("MKV file compression completed.\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
-
+    
 def main():
     # Check if config.ini exists, if not, create it and save default parameters
     config_file = 'config.ini'
@@ -201,15 +201,17 @@ def main():
         print("Running whisperx to convert audio to subtitles and seperating voices this may take a while...")
         
         cmd = f"{activate_cmd} && {whisperx_cmd} && conda deactivate"
+        
         try:
             if dev:
                 print(whisperx_cmd,'\n')
+                print('\n--WhisperX Output--')
                 subprocess.run(cmd, shell=True, check=True)
+                print('----------------------')
             else:
-                process = subprocess.run(cmd, shell=True, check=True, stderr=subprocess.DEVNULL,stdout=subprocess.PIPE, text=True)
-                for line in process.stdout.splitlines():
-                    if "Performing transcription..." in line or "Performing alignment..." in line or "Performing diarization..." in line:
-                        print(line)
+                print('\n--WhisperX Output--')
+                subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL,check=True)
+                print('----------------------')
         except subprocess.CalledProcessError as e:
             input('\n***A fatal error happpened with WhisperX, please go into the config.ini file and set developer_debug to y to see the errors.***')
             return
