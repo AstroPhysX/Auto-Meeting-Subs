@@ -42,7 +42,7 @@ You can now exit Handbrake and move on to the next step.
 ### Installing Git
 You may not need to install this if you already you already use git but just in case. Download git from [here](https://git-scm.com/downloads)
 Now go through the install process and don't change any settings.
-## Installing Conda and Setting Environment Variables
+### Installing Conda and Setting Environment Variables
 Now this is by far the hardest thing to install. We will be installing anaconda or miniconda first which is a virtual enironment where whisperx is going to live. If you don't know the differnece between miniconda and anaconda, the main difference is that anaconda comes with more data science packages. <br /> 
 So if you don't plan on having any other use for anaconda/miniconda besides for this program, **I reccommend using miniconda.** <br />
 Anaconda: https://www.anaconda.com/download <br/>
