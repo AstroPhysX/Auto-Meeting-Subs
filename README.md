@@ -83,9 +83,9 @@ Activate the environment `conda activate whisperx`<br />
 We now need to set up speaker Diarization for whisperX. You will need to generate a Hugging Face access token that you can generate here:<br /> [Hugging Face API Token](https://huggingface.co/settings/tokens) <br /> If you don't have an account go through the process to sign up for a free account. Then click on "New Token", the role can be set to read and name the token however you would like. **Copy the token somewhere safe, we will be using it later during the initial setup of Auto-Meeting-Subs.exe**<br />
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/e32daa8e-594e-406b-b2fc-f2b073a35cf7)
 **IMPORTANT:** You will now need to go to each of the following links and accept the user agreements for these models:<br />
-Segmentation: https://huggingface.co/pyannote/segmentation <br />
+Segmentation: https://huggingface.co/pyannote/segmentation and https://huggingface.co/pyannote/segmentation-3.0<br />
 Voice Activity Detection (VAD): https://huggingface.co/pyannote/voice-activity-detection <br />
-Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization <br /><br />
+Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization and https://huggingface.co/pyannote/speaker-diarization-3.1<br /><br />
 
 **Optional for people that want more control on how to run whisperX** 
 You can build a command for whisperx which you can implement into the python code, but you will need to compile it into an exe file using auto-py-to-exe. Here is a text document that has a table in it describing all the possible commands you may want to use: [WhisperX commands](https://github.com/AstroPhysX/Auto-Meeting-Subs/blob/main/WhisperX%20commands.txt)
