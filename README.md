@@ -3,7 +3,7 @@
 Automatically converts meeting subs to WAV file which then runs through an instance of whisperx to create srt subtitles, then compresses the video using handbrakecli. Then moves and renames compressed video file and subtitles to output directory.<br /><br />
 The goal behind this program was to simply create a transcript of what people said in a meeting to make my life easier to parse through the meeting and figure out when things were said, that way I can quickly skip to that part of the video or meeting. This prgoram does 3 things: it converts the audioto the WAV format from either and MKV video file or from a WMA audio file (WMA is the format that onenote records in), then the program uses the newly converted audio to run a command in whisperx which creates a subtitle file with speech diarization, once the subtitiles have been created the program then runs handbrake which compress the video file, finally the program renames the video and subtitle file to "Meeting yy.mm.dd" where the date is creation date of the file.
 # Install process
-There are 3 prerequisite programs to run this program. These programs are ffmpeg, whisperX and Handbrakecli. We will start with the easiest thing to install and install the hardest thing last.
+There are 4 prerequisite programs to run this program. These programs are ffmpeg, Handbrakecli, git, and whisperX. We will start with the easiest thing to install and install the hardest thing last.
 ### Installing ffmpeg
 Start by going to this website: [https://ffmpeg.org/download.html#build-windows](https://github.com/BtbN/FFmpeg-Builds/releases)
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d64fcdcc-9708-41f9-87ff-57981f6cb69b)
@@ -16,7 +16,8 @@ Handbrake (GUI): https://handbrake.fr/downloads.php <br />
 Handbrakecli: https://handbrake.fr/downloads2.php <br />
 When downloading you will have the option between a portable or an installer, you can choose either one. The portable version just means it is self contained and does not need to be installed on the machine (can run on just a usb). I would recommend sticking to the installer since whisperX will need to be installed on your machine anyways.<br />
 Now run the installer and install handbrake anywhere you would like, but **Remeber where you install it, for our next steps**<br />
-Extract the Handbrakecli, and copy what is inside to the folder where you just installed the Handbrake. This will allow you to have everything Handbrake related in one place.
+#### Setting up Handbrakecli
+Extract the Handbrakecli, and copy what is inside to the folder where you just installed the Handbrake (typically located at `C:\Program Files\HandBrake`). This will allow you to have everything Handbrake related in one place.
 #### Setting up Handbrake
 Double click the Handbrake icon on your desktop or double click the HandBrake.exe file in the location you installed it and open handbrake.<br />
 Using the GUI you can setup the compression however you would like. Everytime you open handbrake you will be greeted with this: ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/a54d840e-1ea3-49d3-9af2-96d61891f9df) <br />
@@ -38,34 +39,53 @@ I have found from running multiple tests that best settings for my use case has 
   * Codec: Auto Passthru
 Now click on "Save preset" and save it with the whatever name you would like, but **remeber the preset name since you will be needing it later**. I have it saved as "Meetings". See picture on how to save preset: ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/937654ec-dfb6-4628-83af-a78d28cfcfc3) <br />
 You can now exit Handbrake and move on to the next step.
-### Installing WhisperX
+### Installing Git
+You may not need to install this if you already you already use git but just in case. Download git from [here](https://git-scm.com/downloads)
+Now go through the install process and don't change any settings.
+### Installing Conda and Setting Environment Variables
 Now this is by far the hardest thing to install. We will be installing anaconda or miniconda first which is a virtual enironment where whisperx is going to live. If you don't know the differnece between miniconda and anaconda, the main difference is that anaconda comes with more data science packages. <br /> 
 So if you don't plan on having any other use for anaconda/miniconda besides for this program, **I reccommend using miniconda.** <br />
 Anaconda: https://www.anaconda.com/download <br/>
 **OR** <br />
-Miniconda: https://docs.conda.io/en/latest/miniconda.html ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/363d2ebc-46e3-4685-bfe6-58627fda3c69) <br/>
+Miniconda: https://docs.conda.io/projects/miniconda/en/latest/miniconda-other-installer-links.html ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/363d2ebc-46e3-4685-bfe6-58627fda3c69) <br/>
 1. Download either anaconda or miniconda (see above description for the difference)<br/>
 2. Run the .exe file you just downloaded and install anaconda with all the default settings.<br />
 3. Once installed go to your start menu and type "anaconda prompt" ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d3ee4212-676d-4f95-87c9-07a53e923ae2) <br/>
 4. Now type the following command `where conda` this will give you 3 directories on where conda is located. We are going to need this in the next step, so leave the anaconda prompt open.<br/>
-5. Go back to the start menu and type "View advanced system settings"![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/e4a56773-95f2-45ef-b2a9-66670f1e08d8) <br/>
-6. Click on "Environment Variables..." then select "Path" in the top list and click on "Edit...". Finally Click on "New" and copy each of the directories that the `where conda` command spit out (You will have click New for each directory listed in the ananconda prompt). When you have added each directory to the list click "OK" then "OK" then "Apply"![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/46519a0d-d16f-4ce1-be9e-12ebd83fbf95) <br/>
-7. You can now exit the anaconda command prompt and open a normal command prompt by typing "cmd" in the start menu and run `conda --version`. If you get a result that says something like "conda xx.x.x" where the x's are the version number then you have installed conda successfully!
-8. Lets create the environment for where whisperx is going to live. For this part I am going to follow the installation guide from [m-bain/whisperx](https://github.com/m-bain/whisperX) <br />
+5. Similarly we need to find the location of git, go to your start menu and type "git bash" ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/a7617f3c-9ba2-4126-ba74-947fcc8ed4f6) <br />
+6. Now type the following command `where git` this will give you 2 directories on where git is located. We are going to need this in the next step, so leave the gjit bash open.
+7. Go back to the start menu and type "View advanced system settings"![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/e4a56773-95f2-45ef-b2a9-66670f1e08d8) <br/>
+8. Click on "Environment Variables..." then select "Path" in the top list and click on "Edit...". Finally Click on "New" and copy each of the directories that the `where conda` command spit out and those from `where git` (You will have click New for each directory listed in the ananconda prompt and bash). When you have added each directory to the list click "OK" then "OK" then "Apply"<br />
+The directories should look something like the following assuming you installed them in the default locations:
+Miniconda
+`C:\Users\Robert\miniconda3`<br />
+`C:\Users\Robert\miniconda3\Scripts`<br />
+`C:\Users\Robert\miniconda3\Library\bin`<br />
+git <br />
+`C:\Program files\Git\mingw64\bin\`<br />
+`C:\Program files\Git\cmd\`<br />
+We also are going to want to add ffmpeg directory to the enviroment varibles, so you will need to find out where you extracted ffmpeg.<br />
+`path\to\ffmpeg\bin\`<br />
+![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/46519a0d-d16f-4ce1-be9e-12ebd83fbf95) <br/>
+10. You can now exit the anaconda command prompt and git bash. Open a normal command prompt by typing "cmd" in the start menu and run `conda --version`. If you get a result that says something like "conda xx.x.x" where the x's are the version number then you have installed conda successfully!
+11. Similarly you want to test if git is installed properly by typing `git --version`. If you get a result saying something like "git version x.xx.x.windows.1" then you have successfully installed git!
+12. Lastly we want to test if ffmpeg is installed correctly by typing `ffmpeg -version`. If you get a result saying something like "ffmpeg version N-111069-g41229ef705-20230615 Copyright (c) 2000-2023 the FFmpeg developers" then you have successfully installed ffmpeg!
+### Installing WhisperX
+1. Lets create the environment for where whisperx is going to live. For this part I am going to follow the installation guide from [m-bain/whisperx](https://github.com/m-bain/whisperX) <br />
 Start by running the command `conda create --name whisperx python=3.10` <br />
 Activate the environment `conda activate whisperx`<br />
 (In the example below I called my environment "test" yours should be named whisperx
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/f10e8f68-2db8-47d7-a916-92559b9eac83) <br />
-9. Before installing whisperx in this environment we need to install all the tools that it uses with the following command if you have an nvidia:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia`<br /><br /> Unfortunately, if you are using an AMD graphics card you will have do some research if they have implemented pytorch recently otherwise you can use the following command if you are on AMD or if you don't have a GPU:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c pytorch`
-10. And finally we can install whisperx: `pip install git+https://github.com/m-bain/whisperx.git`
-11. **Optional:** If you are going to modify the source code or python file and want to later convert eh modified python code you can compile the code using auto-py-to-exe. Run the following command: `pip install auto-py-to-exe` We will be using this later to compile our program, that way we can simply run a single .exe file. To compile your new python code you will need to run `conda activate whisperx && auto-py-to-exe` then you can select the "one file" option that way you have a single .exe file.
+2. Before installing whisperx in this environment we need to install all the tools that it uses with the following command if you have an nvidia:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia`<br /><br /> Unfortunately, if you are using an AMD graphics card you will have do some research if they have implemented pytorch recently otherwise you can use the following command if you are on AMD or if you don't have a GPU:<br /> `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c pytorch`
+3. And finally we can install whisperx: `pip install git+https://github.com/m-bain/whisperx.git`
+4. **Optional:** If you are going to modify the source code or python file and want to later convert eh modified python code you can compile the code using auto-py-to-exe. Run the following command: `pip install auto-py-to-exe` We will be using this later to compile our program, that way we can simply run a single .exe file. To compile your new python code you will need to run `conda activate whisperx && auto-py-to-exe` then you can select the "one file" option that way you have a single .exe file.
 ## Setting up whisperX
 We now need to set up speaker Diarization for whisperX. You will need to generate a Hugging Face access token that you can generate here:<br /> [Hugging Face API Token](https://huggingface.co/settings/tokens) <br /> If you don't have an account go through the process to sign up for a free account. Then click on "New Token", the role can be set to read and name the token however you would like. **Copy the token somewhere safe, we will be using it later during the initial setup of Auto-Meeting-Subs.exe**<br />
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/e32daa8e-594e-406b-b2fc-f2b073a35cf7)
 **IMPORTANT:** You will now need to go to each of the following links and accept the user agreements for these models:<br />
-Segmentation: https://huggingface.co/pyannote/segmentation <br />
+Segmentation: https://huggingface.co/pyannote/segmentation and https://huggingface.co/pyannote/segmentation-3.0<br />
 Voice Activity Detection (VAD): https://huggingface.co/pyannote/voice-activity-detection <br />
-Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization <br /><br />
+Speaker Diariztion: https://huggingface.co/pyannote/speaker-diarization and https://huggingface.co/pyannote/speaker-diarization-3.1<br /><br />
 
 **Optional for people that want more control on how to run whisperX** 
 You can build a command for whisperx which you can implement into the python code, but you will need to compile it into an exe file using auto-py-to-exe. Here is a text document that has a table in it describing all the possible commands you may want to use: [WhisperX commands](https://github.com/AstroPhysX/Auto-Meeting-Subs/blob/main/WhisperX%20commands.txt)
