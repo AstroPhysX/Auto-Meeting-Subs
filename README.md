@@ -61,10 +61,11 @@ Miniconda
 `C:\Users\Robert\miniconda3`<br />
 `C:\Users\Robert\miniconda3\Scripts`<br />
 `C:\Users\Robert\miniconda3\Library\bin`<br />
-git
+git <br />
 `C:\Program files\Git\mingw64\bin\`<br />
 `C:\Program files\Git\cmd\`<br />
-We also are going to want to add ffmpeg to the enviroment varibles so you will need to find out where you extracted ffmpeg.<br />
+We also are going to want to add ffmpeg directory to the enviroment varibles, so you will need to find out where you extracted ffmpeg.<br />
+`path\to\ffmpeg\bin\`<br />
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/46519a0d-d16f-4ce1-be9e-12ebd83fbf95) <br/>
 10. You can now exit the anaconda command prompt and git bash. Open a normal command prompt by typing "cmd" in the start menu and run `conda --version`. If you get a result that says something like "conda xx.x.x" where the x's are the version number then you have installed conda successfully!
 11. Similarly you want to test if git is installed properly by typing `git --version`. If you get a result saying something like "git version x.xx.x.windows.1" then you have successfully installed git!
