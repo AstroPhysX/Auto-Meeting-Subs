@@ -3,7 +3,7 @@
 Automatically converts meeting subs to WAV file which then runs through an instance of whisperx to create srt subtitles, then compresses the video using handbrakecli. Then moves and renames compressed video file and subtitles to output directory.<br /><br />
 The goal behind this program was to simply create a transcript of what people said in a meeting to make my life easier to parse through the meeting and figure out when things were said, that way I can quickly skip to that part of the video or meeting. This prgoram does 3 things: it converts the audioto the WAV format from either and MKV video file or from a WMA audio file (WMA is the format that onenote records in), then the program uses the newly converted audio to run a command in whisperx which creates a subtitle file with speech diarization, once the subtitiles have been created the program then runs handbrake which compress the video file, finally the program renames the video and subtitle file to "Meeting yy.mm.dd" where the date is creation date of the file.
 # Install process
-There are 3 prerequisite programs to run this program. These programs are ffmpeg, whisperX and Handbrakecli. We will start with the easiest thing to install and install the hardest thing last.
+There are 4 prerequisite programs to run this program. These programs are ffmpeg, Handbrakecli, git, and whisperX. We will start with the easiest thing to install and install the hardest thing last.
 ### Installing ffmpeg
 Start by going to this website: [https://ffmpeg.org/download.html#build-windows](https://github.com/BtbN/FFmpeg-Builds/releases)
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d64fcdcc-9708-41f9-87ff-57981f6cb69b)
