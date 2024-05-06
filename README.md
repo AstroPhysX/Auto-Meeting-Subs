@@ -133,6 +133,13 @@ Change the very last line where it says `developer_debug = n` to `developer_debu
 ![developer_debug](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/62c9fe9c-5edc-41c7-937a-acc2fec903f3)
 
 Now when you run the program you will see all the errors that may occur when running ffmpeg, Whisperx or even handbrake.
+
+# Upcoming feature/changes
+- [ ] Implement Whisperx directly into the code without needing to use CLI version
+    - [ ] use num_speakers in the diarize.py file instead of the min and max speakers since speaker-diarization-3.1 does not work well with those arguments
+- [ ] Allow user to input any video or audio file type
+- [ ] Fix date issue if date is already in the name of the file and does not correspond with the date of the file
+- [ ] implement a way to disable compression of video if requested
 # Uninstalling Everything
 1. Start by deleting both the Auto-Meeting-Subs.exe and the config.ini files.
 2. Go to your command prompt, by going the start menu and typing cmd and open a command prompt and type the following command <br /> `conda remove --name whisperx --all`
