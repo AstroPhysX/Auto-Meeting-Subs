@@ -196,7 +196,7 @@ def main():
     
         #CHANGE THIS COMMAND, WITH WHAT EVER SETTINGS YOU WOULD LIKE FOR WHISPERX, REFER TO WHISPERX COMMANDS
         whisperx_cmd = (
-            f'whisperx "{output_wav_file}" -o "{output_dir}" -f {sub_format} --diarize --max_speakers {max_num_speakers} --min_speakers {min_num_speakers} --hf_token {token} --model medium{model_language} {compute_type_otpions}'
+            f'whisperx "{output_wav_file}" -o "{output_dir}" -f {sub_format} --diarize --max_speakers {max_num_speakers} --hf_token {token} --model medium{model_language} {compute_type_otpions}'
         )
         print("Running whisperx to convert audio to subtitles and seperating voices this may take a while...")
         
