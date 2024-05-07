@@ -211,7 +211,9 @@ def main():
         # Prompt user for input
         input_file = input("Enter the file path of the MKV or WMA recording: ").strip('"')
         max_num_speakers = int(input("Enter the number of people talking in the meeting: "))
-    
+        if max_num_speakers == 0:
+            max_num_speakers = None
+        
         A_or_V = audio_or_video(input_file)
         print(f'The file you have provided is a/an {A_or_V}')
         # Get the directory of the input file
@@ -246,7 +248,7 @@ def main():
         if compression:
             if A_or_V == 'video':
                 #Compressing mkv file with handbrake
-                compress_video_with_handbrake(input_file, os.path.join(output_dir, new_filename), handbrake_path, handbrake_preset)
+                compress_video_with_handbrake(input_file, os.path.join(output_dir, f"{new_filename}.mkv"), handbrake_path, handbrake_preset)
                 
                 # Ask the user if they want to remove the original MKV file
                 while True:
@@ -283,7 +285,7 @@ def main():
             file_dir, filename = os.path.split(input_file)
             file_extension = os.path.splitext(filename)[1]
             output_file = os.path.join(output_dir, filename)
-            os.rename(output_file, os.path.join(output_dir, f"{new_filename}.{file_extension}"))
+            os.rename(output_file, os.path.join(output_dir, f"{new_filename}{file_extension}"))
             while True:
                     remove_original = input(f"Do you want to remove the original {A_or_V} file? (y/n): ").strip().lower()
                     if remove_original == 'y':
