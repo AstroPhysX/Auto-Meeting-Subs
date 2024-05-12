@@ -1,3 +1,4 @@
+print('Loading...')
 import os
 import subprocess
 import time
@@ -7,6 +8,7 @@ import whisperx
 import gc
 import torch
 import filetype
+import sys
 
 # Function to create the config.ini file and save parameters
 def create_config(config_file):
@@ -73,7 +75,7 @@ def read_config(config_file):
     
     return paths, token, handbrake_preset, output_dir, English, subtitle_format, compress, batch_size, developer
 
-#function to convert any file type to audio
+# Function to convert any file type to audio
 def convert_to_wav(input_file, ouput_filname, ffmpeg_path, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print(f"\nffmpeg is converting {input_file} to WAV...")
@@ -92,7 +94,7 @@ def convert_to_wav(input_file, ouput_filname, ffmpeg_path, dev=False):
     print(f"ffmpeg has converted {input_file} to {output_wav_file}\n")
     return output_wav_file
 
-#Function to determine if file is Audio or Video
+# Function to determine if file is Audio or Video
 def audio_or_video(file):
     kind = filetype.guess(file)
     if kind is None:
@@ -104,12 +106,12 @@ def audio_or_video(file):
     else:
         return 'unknown'
     
-#Function to get the file's date from its metadata
+# Function to get the file's date from its metadata
 def get_creation_date(mkv_file_path):
     # Get the creation date of the MKV file
     return os.path.getctime(mkv_file_path)
 
-#Function to compress/convert the audio to mp3
+# Function to compress/convert the audio to mp3
 def compressing_wma_to_mp3(wma_file_path, output_mp3_file, ffmpeg_path):
     print('--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print("ffmpeg is extracting the audio from your WMA file and converting it to MP3...")
@@ -118,7 +120,7 @@ def compressing_wma_to_mp3(wma_file_path, output_mp3_file, ffmpeg_path):
     print("ffmpeg has extracted and converted the audio to MP3 from", wma_file_path, "\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
-#Function to compress the orginal video using handbrake
+# Function to compress the orginal video using handbrake
 def compress_video_with_handbrake(video_file_path, output_compressed_mkv, handbrake_path, handbrake_preset):
 
     # Set the desired compression options using HandBrakeCLI
@@ -136,7 +138,15 @@ def compress_video_with_handbrake(video_file_path, output_compressed_mkv, handbr
     print("MKV file compression completed.\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
-def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size):
+def get_correct_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size, dev):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # reduce if low on GPU mem
     # 1. Transcribe with original whisper (batched)
@@ -146,8 +156,10 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size)
         try:
             print(f"Constructing model with {device} and {compute_types[num_fails]}")
             # Call the function with the current parameter value
-            modload = whisperx.load_model(model, device, compute_type=compute_types[num_fails])
+            modload = whisperx.load_model(model, device, compute_type=compute_types[num_fails], download_root=get_correct_path('Model'))
         except Exception as e:
+            if dev:
+                print(e)
             num_fails += 1
             if num_fails == 3:
                 # Third failure, raise an error message
@@ -157,8 +169,23 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size)
             break
     
     print(">>Performing transcription...")
-    audio = whisperx.load_audio(file)
-    result = modload.transcribe(audio, batch_size=batch_size, print_progress=False)
+    try:
+        audio = whisperx.load_audio(get_correct_path(file))
+        if dev:
+            print('Audio loaded', audio)
+    except Exception as e:
+        if dev:
+            print(e)
+        raise RuntimeWarning('Audio failed to load')
+
+    try:
+        result = modload.transcribe(audio, batch_size=batch_size, print_progress=False)
+        if dev:
+            print('Transcription completed')
+    except:
+        if dev:
+            print(e)
+        raise RuntimeWarning('Transcription Failed')
     
     # Unload Whisper and VAD
     del model
@@ -235,7 +262,7 @@ def main():
         print('--------------------------------------------------------------WhisperX-------------------------------------------------------------------------------------------')
         #WhisperX
         try:
-            whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz)
+            whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz, dev=dev)
         except:
             input('\n***A fatal error happpened with WhisperX, please go into the config.ini file and set developer_debug to y to see the errors.***')
             return
