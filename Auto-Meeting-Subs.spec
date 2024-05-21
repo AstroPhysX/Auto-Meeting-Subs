@@ -10,7 +10,7 @@ a = Analysis(
     binaries=binaries,
     datas=[('C:/Python/Environments/auto-meeting-sub-env/Lib/site-packages/lightning_fabric/version.info', 'lightning_fabric'),
     ('C:/Python/Environments/auto-meeting-sub-env/Lib/site-packages/whisperx/assets/mel_filters.npz', 'whisperx/assets')],
-    hiddenimports=['pytorch-cuda', 'tty', 'posix', 'multiprocessing', 'matplotlib', 'pyreadline3', 'pyparsing', 'setuptools', 'numpy', 'six', 'dateutil', 'scipy', 'curses', 'sympy', 'numba', 'pygments', 'pandas', 'sqlalchemy', 'nltk', 'urllib3', 'torch', 'aiohttp', 'lightning', 'transformers', 'optuna', 'librosa', 'einops','pyannote', 'pyannote.audio.models.segmentation'],
+    hiddenimports=['pytorch-cuda', 'tty', 'posix', 'multiprocessing', 'matplotlib', 'pyreadline3', 'pyparsing', 'setuptools', 'numpy', 'six', 'dateutil', 'scipy', 'curses', 'sympy', 'numba', 'pygments', 'pandas', 'sqlalchemy', 'nltk', 'urllib3', 'torch', 'aiohttp', 'lightning', 'transformers', 'optuna', 'librosa', 'einops','pyannote', 'pyannote.audio.models.segmentation','pyannote.audio.models.embedding'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

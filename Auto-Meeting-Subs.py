@@ -9,6 +9,7 @@ import gc
 import torch
 import filetype
 import sys
+import ffmpeg
 
 # Function to create the config.ini file and save parameters
 def create_config(config_file):
@@ -75,23 +76,26 @@ def read_config(config_file):
     
     return paths, token, handbrake_preset, output_dir, English, subtitle_format, compress, batch_size, developer
 
-# Function to convert any file type to audio
-def convert_to_wav(input_file, ouput_filname, ffmpeg_path, dev=False):
+# Function to convert any file type to audio    
+def convert_to_wav(input_file, output_filename, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print(f"\nffmpeg is converting {input_file} to WAV...")
     # Get the directory of the current Python script
     script_directory = os.path.dirname(__file__)
 
     # Construct the output WAV file path
-    output_wav_file = os.path.join(script_directory, f'{ouput_filname}.wav')
+    output_wav_file = os.path.join(script_directory, f'{output_filename}.wav')
 
     # Use ffmpeg to convert the input file to WAV
-    if dev:
-        subprocess.run([ffmpeg_path,"-y", "-i", input_file, "-vn", "-acodec", "pcm_s16le", output_wav_file])
-    else:
-        subprocess.run([ffmpeg_path,"-y", "-i", input_file, "-vn", "-acodec", "pcm_s16le", output_wav_file], stderr=subprocess.DEVNULL)
-
-    print(f"ffmpeg has converted {input_file} to {output_wav_file}\n")
+    try:
+        if dev:
+            ffmpeg.input(input_file).output(output_wav_file, acodec='pcm_s16le', vn=None).run(overwrite_output=True)
+        else:
+            ffmpeg.input(input_file).output(output_wav_file, acodec='pcm_s16le', vn=None).run(overwrite_output=True, capture_stderr=True)
+        print(f"ffmpeg has converted {input_file} to {output_wav_file}\n")
+    except ffmpeg.Error as e:
+        print(f"An error occurred: {e.stderr.decode()}")
+    
     return output_wav_file
 
 # Function to determine if file is Audio or Video
@@ -263,7 +267,7 @@ def main():
 
         #Creating WAV file
         new_filename = f"Meeting {formatted_date}"
-        wav_file = convert_to_wav(input_file, new_filename, ffmpeg_path,dev)
+        wav_file = convert_to_wav(input_file, new_filename, dev)
         
         print('--------------------------------------------------------------WhisperX-------------------------------------------------------------------------------------------')
         #WhisperX
@@ -319,7 +323,19 @@ def main():
             file_dir, filename = os.path.split(input_file)
             file_extension = os.path.splitext(filename)[1]
             output_file = os.path.join(output_dir, filename)
-            os.rename(output_file, os.path.join(output_dir, f"{new_filename}{file_extension}"))
+            destination = os.path.join(output_dir, f"{new_filename}{file_extension}")
+            if os.path.exists(destination):
+                while True:
+                    overwrite = input(f"File '{destination}' already exists. Do you want to overwrite it? (y/n): ").strip().lower()
+                    if overwrite == 'y':
+                        os.remove(destination)
+                        break
+                    elif overwrite == 'n':
+                        print("File was not overwritten. Operation aborted.")
+                        break
+                    else:
+                        print("Please enter 'y' for yes or 'n' for no.")
+            os.rename(output_file, destination)
             while True:
                     remove_original = input(f"Do you want to remove the original {A_or_V} file? (y/n): ").strip().lower()
                     if remove_original == 'y':
