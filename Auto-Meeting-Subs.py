@@ -172,20 +172,16 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
     try:
         audio = whisperx.load_audio(get_correct_path(file))
         if dev:
-            print('Audio loaded', audio)
+            print('Audio loaded')
     except Exception as e:
         if dev:
-            print(e)
+            print('Audio failed to load', e)
         raise RuntimeWarning('Audio failed to load')
 
-    try:
-        result = modload.transcribe(audio, batch_size=batch_size, print_progress=False)
-        if dev:
-            print('Transcription completed')
-    except:
-        if dev:
-            print(e)
-        raise RuntimeWarning('Transcription Failed')
+
+    result = modload.transcribe(audio, batch_size=batch_size, print_progress=True)
+    if dev:
+        print('Transcription completed')
     
     # Unload Whisper and VAD
     del model
@@ -194,7 +190,11 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
     
     # 2. Align whisper output
     print(">>Performing alignment...")
+    if dev:
+        print('Loading model')
     model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+    if dev:
+        print('Aligining')
     result = whisperx.align(result["segments"], model_a, metadata, audio, device, return_char_alignments=False, print_progress=False)
     
     # Unload align model
@@ -204,9 +204,15 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
     
     # 3. Diarize
     print(">>Performing diarization...")
+    if dev:
+        print('Loading Diarization model')
     diarize_model = whisperx.DiarizationPipeline(use_auth_token=token, device=device)
+    if dev:
+        print('Running diarization')
     diarize_segments = diarize_model(audio, num_speakers=num_speakers)
     
+    if dev:
+        print('Assigning speaker')
     result = whisperx.assign_word_speakers(diarize_segments, result)
     
     #writing file
@@ -261,11 +267,12 @@ def main():
         
         print('--------------------------------------------------------------WhisperX-------------------------------------------------------------------------------------------')
         #WhisperX
-        try:
+        whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz, dev=dev)
+        """try:
             whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz, dev=dev)
         except:
             input('\n***A fatal error happpened with WhisperX, please go into the config.ini file and set developer_debug to y to see the errors.***')
-            return
+            return"""
             
         print("\nSubtitles finished.\n")
 
