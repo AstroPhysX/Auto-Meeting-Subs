@@ -13,13 +13,14 @@ class DiarizationPipeline:
         model_name="pyannote/speaker-diarization-3.1",
         use_auth_token=None,
         device: Optional[Union[str, torch.device]] = "cpu",
+        dev=False
     ):
         if isinstance(device, str):
             device = torch.device(device)
-        print('pipeline model')
+        if dev:
+            print('Making Pipeline Model')
         self.model = Pipeline.from_pretrained(model_name, use_auth_token=use_auth_token).to(device)
 
-    print('call')
     def __call__(self, audio: Union[str, np.ndarray], num_speakers=None, min_speakers=None, max_speakers=None):
         if isinstance(audio, str):
             audio = load_audio(audio)
@@ -27,7 +28,6 @@ class DiarizationPipeline:
             'waveform': torch.from_numpy(audio[None, :]),
             'sample_rate': SAMPLE_RATE
         }
-        print('segmenting')
         segments = self.model(audio_data, num_speakers = num_speakers, min_speakers=min_speakers, max_speakers=max_speakers)
         diarize_df = pd.DataFrame(segments.itertracks(yield_label=True), columns=['segment', 'label', 'speaker'])
         diarize_df['start'] = diarize_df['segment'].apply(lambda x: x.start)

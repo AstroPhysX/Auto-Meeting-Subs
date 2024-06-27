@@ -171,32 +171,34 @@ class FasterWhisperPipeline(Pipeline):
         return final_iterator
 
     def transcribe(
-        self, audio: Union[str, np.ndarray], batch_size=None, num_workers=0, language=None, task=None, chunk_size=30, print_progress = False, combined_progress=False
+        self, audio: Union[str, np.ndarray], batch_size=None, num_workers=0, language=None, task=None, chunk_size=30, print_progress = False, combined_progress=False, dev=False
     ) -> TranscriptionResult:
         if isinstance(audio, str):
             audio = load_audio(audio)
 
         def data(audio, segments):
-            print('Running data')
+            if dev:
+                print('Running data')
             for seg in segments:
                 f1 = int(seg['start'] * SAMPLE_RATE)
                 f2 = int(seg['end'] * SAMPLE_RATE)
                 # print(f2-f1)
                 yield {'inputs': audio[f1:f2]}
-            print('data function complete')
-
-        print('Constructing VAD model')
-        vad_segments = self.vad_model({"waveform": torch.from_numpy(audio).unsqueeze(0), "sample_rate": SAMPLE_RATE})
-        print('VAD constructed')
         
-        print('VAD segmentation')
+        if dev:
+            print('Constructing VAD model')
+        vad_segments = self.vad_model({"waveform": torch.from_numpy(audio).unsqueeze(0), "sample_rate": SAMPLE_RATE})
+        if dev:
+            print('VAD constructed')
+            print('VAD segmentation')
         vad_segments = merge_chunks(
             vad_segments,
             chunk_size,
             onset=self._vad_params["vad_onset"],
             offset=self._vad_params["vad_offset"],
         )
-        print('Tokenizer')
+        if dev:
+            print('Tokenizer')
         if self.tokenizer is None:
             language = language or self.detect_language(audio)
             task = task or "transcribe"
@@ -210,24 +212,29 @@ class FasterWhisperPipeline(Pipeline):
                 self.tokenizer = faster_whisper.tokenizer.Tokenizer(self.model.hf_tokenizer,
                                                                     self.model.model.is_multilingual, task=task,
                                                                     language=language)
-        print('Tokenizer completed')
+        if dev:
+            print('Tokenizer completed')
                 
         if self.suppress_numerals:
-            print('Supress Numerals')
+            if dev:
+                print('Supress Numerals')
             previous_suppress_tokens = self.options.suppress_tokens
             numeral_symbol_tokens = find_numeral_symbol_tokens(self.tokenizer)
-            print(f"Suppressing numeral and symbol tokens")
+            if dev:
+                print(f"Suppressing numeral and symbol tokens")
             new_suppressed_tokens = numeral_symbol_tokens + self.options.suppress_tokens
             new_suppressed_tokens = list(set(new_suppressed_tokens))
             self.options = self.options._replace(suppress_tokens=new_suppressed_tokens)
-            print('Supression complete')
+            if dev:
+                print('Supression complete')
 
         
         segments: List[SingleSegment] = []
         batch_size = batch_size or self._batch_size
         total_segments = len(vad_segments)
         
-        print('Data call audio')
+        if dev:
+            print('Data call audio')
         for idx, out in enumerate(self.__call__(data(audio, vad_segments), batch_size=batch_size, num_workers=num_workers)):
             if print_progress:
                 base_progress = ((idx + 1) / total_segments) * 100
@@ -243,7 +250,8 @@ class FasterWhisperPipeline(Pipeline):
                     "end": round(vad_segments[idx]['end'], 3)
                 }
             )
-        print('Data call complete')
+        if dev:
+            print('Data call complete')
         # revert the tokenizer if multilingual inference is enabled
         if self.preset_language is None:
             self.tokenizer = None

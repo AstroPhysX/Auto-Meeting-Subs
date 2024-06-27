@@ -269,7 +269,7 @@ def main():
     
     while True:
         # Prompt user for input
-        input_file = input("Enter the file path of video or audio recording: ").strip('"')
+        input_file = input("Enter the file path of the MKV or WMA recording: ").strip('"')
         max_num_speakers = int(input("Enter the number of people talking in the meeting: "))
         if max_num_speakers == 0:
             max_num_speakers = None
@@ -380,7 +380,3 @@ def main():
             elif more_meetings == 'y':
                 print('****************************************************************************************************************************************************************************')
                 break
-        
-
-if __name__ == "__main__":
-    main()
