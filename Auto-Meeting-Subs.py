@@ -18,7 +18,6 @@ def create_config(config_file):
     print("Looks like this is the first time you are running this program. We are going set up some necessary things for the program to run.")
     config = configparser.ConfigParser()
     config['PATHS'] = {
-        'ffmpeg_path': input("Enter the path to ffmpeg.exe: ").strip('"'),
         'handbrake_path': input("Enter the path to HandBrakeCLI.exe: ").strip('"'),
     }
     config['HAND_BRAKE'] = {
@@ -259,7 +258,6 @@ def main():
 
     # Read parameters from the config.ini file
     paths, token, handbrake_preset, output_dir, English, sub_format, compression,batch_size, developer = read_config(config_file)  #extracts the settings from the config file
-    ffmpeg_path = paths['ffmpeg_path']
     handbrake_path = paths['handbrake_path']
     model_language = ".en" if English == 'y' else ''
     compression = True if compression == 'y' else False
