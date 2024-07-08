@@ -28,6 +28,7 @@ exe = EXE(
     a.scripts,
     a.datas,
     [],
+    exclude_binaries=True,
     name='Auto-Meeting-Subs',
     debug=False,
     bootloader_ignore_signals=False,
