@@ -12,6 +12,12 @@ import ffmpeg
 import sys
 import io
 from contextlib import redirect_stdout, redirect_stderr
+#Function to create dir in appdata
+def mkdir_localdata():
+    localappdata_dir = os.getenv('LOCALAPPDATA')
+    appdata_dir = os.path.join(localappdata_dir, 'Auto-Meeting-Subs')
+    os.makedirs(appdata_dir, exist_ok=True)
+    return appdata_dir
 
 # Function to create the config.ini file and save parameters
 def create_config(config_file):
@@ -57,6 +63,7 @@ def create_config(config_file):
         'Developer_debug': 'n'
     }
     print("\nFirst time configuration complete!!\n")
+    
     with open(config_file, 'w') as cfgfile:
         config.write(cfgfile)
 
@@ -78,26 +85,21 @@ def read_config(config_file):
     return paths, token, handbrake_preset, output_dir, English, subtitle_format, compress, batch_size, developer
 
 # Function to convert any file type to audio    
-def convert_to_wav(input_file, output_filename, dev=False):
+def convert_to_wav(input_file, output_filename_path, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print(f"\nffmpeg is converting {input_file} to WAV...")
-    # Get the directory of the current Python script
-    script_directory = os.path.dirname(__file__)
-
-    # Construct the output WAV file path
-    output_wav_file = os.path.join(script_directory, f'{output_filename}.wav')
-
+    
     # Use ffmpeg to convert the input file to WAV
     try:
         if dev:
-            ffmpeg.input(input_file).output(output_wav_file, acodec='pcm_s16le', vn=None).run(overwrite_output=True)
+            ffmpeg.input(input_file).output(output_filename_path, acodec='pcm_s16le', vn=None).run(overwrite_output=True)
         else:
-            ffmpeg.input(input_file).output(output_wav_file, acodec='pcm_s16le', vn=None).run(overwrite_output=True, capture_stderr=True)
-        print(f"ffmpeg has converted {input_file} to {output_wav_file}\n")
+            ffmpeg.input(input_file).output(output_filename_path, acodec='pcm_s16le', vn=None).run(overwrite_output=True, capture_stderr=True)
+        print(f"ffmpeg has converted {input_file} to {output_filename_path}\n")
     except ffmpeg.Error as e:
         print(f"An error occurred: {e.stderr.decode()}")
     
-    return output_wav_file
+    return output_filename_path
 
 # Function to determine if file is Audio or Video
 def audio_or_video(file):
@@ -117,12 +119,19 @@ def get_creation_date(mkv_file_path):
     return os.path.getctime(mkv_file_path)
 
 # Function to compress/convert the audio to mp3
-def compressing_wma_to_mp3(wma_file_path, output_mp3_file, ffmpeg_path):
+def compressing_audio_to_mp3(Audio_file_path, output_mp3_file, dev=False):
     print('--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print("ffmpeg is extracting the audio from your WMA file and converting it to MP3...")
     # Use ffmpeg to extract audio from the WMA file and save it as MP3
-    subprocess.run([ffmpeg_path, "-i", wma_file_path, "-vn", "-acodec", "libmp3lame", output_mp3_file], stderr=subprocess.DEVNULL)
-    print("ffmpeg has extracted and converted the audio to MP3 from", wma_file_path, "\n")
+    try:
+        if dev:
+            ffmpeg.input(Audio_file_path).output(output_mp3_file, acodec='libmp3lame').run(overwrite_output=True)
+        else:
+            ffmpeg.input(Audio_file_path).output(output_mp3_file, acodec='libmp3lame').run(overwrite_output=True, capture_stderr=True)
+        print(f"ffmpeg has converted {Audio_file_path} to {output_mp3_file}\n")
+    except ffmpeg.Error as e:
+        print(f"An error occurred: {e.stderr.decode()}")
+    print("ffmpeg has extracted and converted the audio to MP3 from", Audio_file_path, "\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
 # Function to compress the orginal video using handbrake
@@ -166,7 +175,7 @@ def suppress_specific_warning(func, *args, **kwargs):
             print(line, file=sys.stderr)
     return result
 
-def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size, dev):
+def whisper(file, output_loc, model_location, model, subformat, num_speakers, token, batch_size, dev):
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
@@ -180,9 +189,9 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
             if dev:
                 print(f"Constructing model with {device} and {compute_types[num_fails]}")
                 # Call the function with the current parameter value
-                modload = whisperx.load_model(model, device, compute_type=compute_types[num_fails], download_root=get_correct_path('Model'))
+                modload = whisperx.load_model(model, device, compute_type=compute_types[num_fails], download_root=model_location)
             else:
-                modload = suppress_specific_warning(whisperx.load_model,model,device,compute_type=compute_types[num_fails],download_root=get_correct_path('Model'))  
+                modload = suppress_specific_warning(whisperx.load_model,model,device,compute_type=compute_types[num_fails],download_root=model_location)  
         except Exception as e:
             if dev:
                 print(e)
@@ -218,7 +227,7 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
     print(">>Performing alignment...")
     if dev:
         print('Loading model')
-    model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+    model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device,)
     if dev:
         print('Aligining')
     result = whisperx.align(result["segments"], model_a, metadata, audio, device, return_char_alignments=False, print_progress=False)
@@ -252,12 +261,14 @@ def whisper(file, output_loc, model, subformat, num_speakers, token, batch_size,
         
 def main():
     # Check if config.ini exists, if not, create it and save default parameters
-    config_file = 'config.ini'
-    if not os.path.exists(config_file):
-        create_config(config_file)
+    appdata_dir = mkdir_localdata()
+    config_dir = os.path.join(appdata_dir,'config.ini')
+    
+    if not os.path.exists(config_dir):
+        create_config(config_dir)
 
     # Read parameters from the config.ini file
-    paths, token, handbrake_preset, output_dir, English, sub_format, compression,batch_size, developer = read_config(config_file)  #extracts the settings from the config file
+    paths, token, handbrake_preset, output_dir, English, sub_format, compression,batch_size, developer = read_config(config_dir)  #extracts the settings from the config file
     handbrake_path = paths['handbrake_path']
     model_language = ".en" if English == 'y' else ''
     compression = True if compression == 'y' else False
@@ -288,16 +299,20 @@ def main():
 
         #Creating WAV file
         new_filename = f"Meeting {formatted_date}"
-        wav_file = convert_to_wav(input_file, new_filename, dev)
+        new_file_path = os.path.join(appdata_dir ,new_filename + ".wav")
+        wav_file = convert_to_wav(input_file, new_file_path, dev)
         
         print('--------------------------------------------------------------WhisperX-------------------------------------------------------------------------------------------')
         #WhisperX
-        whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz, dev=dev)
-        """try:
-            whisper(wav_file, output_loc=output_dir, subformat=sub_format, num_speakers=max_num_speakers, token=token, model=f"medium{model_language}", batch_size=batchsiz, dev=dev)
-        except:
-            input('\n***A fatal error happpened with WhisperX, please go into the config.ini file and set developer_debug to y to see the errors.***')
-            return"""
+        whisper(wav_file, 
+                output_loc=output_dir, 
+                subformat=sub_format, 
+                num_speakers=max_num_speakers, 
+                token=token, 
+                model_location=appdata_dir, 
+                model=f"medium{model_language}", 
+                batch_size=batchsiz, 
+                dev=dev)
             
         print("\nSubtitles finished.\n")
 
@@ -324,7 +339,7 @@ def main():
                         print("Invalid input. Please enter 'y' or 'n'.")
             elif A_or_V == 'audio':
                 print("\nCompressing Audio to:",output_dir)
-                compressing_wma_to_mp3(input_file, os.path.join(output_dir, f"{new_filename}.mp3"), ffmpeg_path)
+                compressing_audio_to_mp3(input_file, os.path.join(output_dir, f"{new_filename}.mp3"), dev)
 
                 # Ask the user if they want to remove the original WMA file
                 while True:
