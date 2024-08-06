@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Optional, Union
 
 import numpy as np
+import ffmpeg
 import torch
 import torch.nn.functional as F
 
@@ -20,7 +21,6 @@ N_FRAMES = exact_div(N_SAMPLES, HOP_LENGTH)  # 3000 frames in a mel spectrogram 
 N_SAMPLES_PER_TOKEN = HOP_LENGTH * 2  # the initial convolutions has stride 2
 FRAMES_PER_SECOND = exact_div(SAMPLE_RATE, HOP_LENGTH)  # 10ms per audio frame
 TOKENS_PER_SECOND = exact_div(SAMPLE_RATE, N_SAMPLES_PER_TOKEN)  # 20ms per audio token
-
 
 def load_audio(file: str, sr: int = SAMPLE_RATE):
     """
@@ -39,29 +39,15 @@ def load_audio(file: str, sr: int = SAMPLE_RATE):
     A NumPy array containing the audio waveform, in float32 dtype.
     """
     try:
-        # Launches a subprocess to decode audio while down-mixing and resampling as necessary.
-        # Requires the ffmpeg CLI to be installed.
-        cmd = [
-            "ffmpeg",
-            "-nostdin",
-            "-threads",
-            "0",
-            "-i",
-            file,
-            "-f",
-            "s16le",
-            "-ac",
-            "1",
-            "-acodec",
-            "pcm_s16le",
-            "-ar",
-            str(sr),
-            "-",
-        ]
-        out = subprocess.run(cmd, capture_output=True, check=True).stdout
-    except subprocess.CalledProcessError as e:
+        # Use ffmpeg to decode audio, down-mix to mono, and resample as necessary
+        out, _ = (
+            ffmpeg
+            .input(file)
+            .output('pipe:', format='s16le', ac=1, ar=sr)
+            .run(capture_stdout=True, capture_stderr=True)
+        )
+    except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
-
     return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
 
 

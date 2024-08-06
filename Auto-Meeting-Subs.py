@@ -152,14 +152,7 @@ def compress_video_with_handbrake(video_file_path, output_compressed_mkv, handbr
     print("MKV file compression completed.\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
-def get_correct_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
+# Function supress warning message when running whisperx
 def suppress_specific_warning(func, *args, **kwargs):
     f_stdout = io.StringIO()
     f_stderr = io.StringIO()
@@ -175,6 +168,7 @@ def suppress_specific_warning(func, *args, **kwargs):
             print(line, file=sys.stderr)
     return result
 
+# Function runs whisperX
 def whisper(file, output_loc, model_location, model, subformat, num_speakers, token, batch_size, dev):
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -205,7 +199,7 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
     
     print(">>Performing transcription...")
     try:
-        audio = whisperx.load_audio(get_correct_path(file))
+        audio = whisperx.load_audio(file)
         if dev:
             print('Audio loaded')
     except Exception as e:
@@ -322,40 +316,36 @@ def main():
         if compression:
             if A_or_V == 'video':
                 #Compressing mkv file with handbrake
-                compress_video_with_handbrake(input_file, os.path.join(output_dir, f"{new_filename}.mkv"), handbrake_path, handbrake_preset)
-                
-                # Ask the user if they want to remove the original MKV file
-                while True:
-                    remove_original = input("Do you want to remove the original video file? (y/n): ").strip().lower()
-                    if remove_original == 'y':
-                        os.remove(input_file)
-                        print("\nOriginal MKV file removed.The subtitles and compressed video are in:",output_dir)
-                        break
-                    elif remove_original == 'n':
-                        print("Original video file will be kept.\n")
-                        print("Original video is still located in:",input_file,"\nThe subtitles and compressed video are in:",output_dir)
-                        break
-                    else:
-                        print("Invalid input. Please enter 'y' or 'n'.")
+                destination = os.path.join(output_dir, f"{new_filename}.mkv")
+                if os.path.exists(destination):
+                    while True:
+                        overwrite = input(f"File '{destination}' already exists. Do you want to overwrite it? (y/n): ").strip().lower()
+                        if overwrite == 'y':
+                            compress_video_with_handbrake(input_file, os.path.join(output_dir, f"{new_filename}.mkv"), handbrake_path, handbrake_preset)
+                            break
+                        elif overwrite == 'n':
+                            print("File was not overwritten. Operation aborted.")
+                            break
+                        else:
+                            print("Please enter 'y' for yes or 'n' for no.")
+                else:
+                    compress_video_with_handbrake(input_file, os.path.join(output_dir, f"{new_filename}.mkv"), handbrake_path, handbrake_preset)
             elif A_or_V == 'audio':
                 print("\nCompressing Audio to:",output_dir)
-                compressing_audio_to_mp3(input_file, os.path.join(output_dir, f"{new_filename}.mp3"), dev)
-
-                # Ask the user if they want to remove the original WMA file
-                while True:
-                    remove_original = input("Do you want to remove the original audio file? (y/n): ").strip().lower()
-                    if remove_original == 'y':
-                        os.remove(input_file)
-                        print("\nOriginal audio file removed.The subtitles and compressed audio are in:",output_dir)
-                        break
-                    elif remove_original == 'n':
-                        print("Original audio file will be kept.\n")
-                        print("Original audio is still located in:",input_file,"\nThe subtitles and compressed audio are in:",output_dir)
-                        break
-                    else:
-                        print("Invalid input. Please enter 'y' or 'n'.")
+                if os.path.exists(destination):
+                    while True:
+                        overwrite = input(f"File '{destination}' already exists. Do you want to overwrite it? (y/n): ").strip().lower()
+                        if overwrite == 'y':
+                            compressing_audio_to_mp3(input_file, os.path.join(output_dir, f"{new_filename}.mp3"), dev)
+                            break
+                        elif overwrite == 'n':
+                            print("File was not overwritten. Operation aborted.")
+                            break
+                        else:
+                            print("Please enter 'y' for yes or 'n' for no.")
+                else:
+                    compressing_audio_to_mp3(input_file, os.path.join(output_dir, f"{new_filename}.mp3"), dev)
         else:
-            shutil.copy2(input_file, output_dir)
             file_dir, filename = os.path.split(input_file)
             file_extension = os.path.splitext(filename)[1]
             output_file = os.path.join(output_dir, filename)
@@ -365,25 +355,30 @@ def main():
                     overwrite = input(f"File '{destination}' already exists. Do you want to overwrite it? (y/n): ").strip().lower()
                     if overwrite == 'y':
                         os.remove(destination)
+                        shutil.copy2(input_file, output_dir)
+                        os.rename(output_file, destination)
                         break
                     elif overwrite == 'n':
                         print("File was not overwritten. Operation aborted.")
                         break
                     else:
                         print("Please enter 'y' for yes or 'n' for no.")
-            os.rename(output_file, destination)
-            while True:
-                    remove_original = input(f"Do you want to remove the original {A_or_V} file? (y/n): ").strip().lower()
-                    if remove_original == 'y':
-                        os.remove(input_file)
-                        print(f"\nOriginal {A_or_V} file removed.The subtitles and compressed video are in:",output_dir)
-                        break
-                    elif remove_original == 'n':
-                        print(f"Original {A_or_V} file will be kept.\n")
-                        print(f"Original {A_or_V} is still located in:",input_file,f"\nThe subtitles and compressed {A_or_V} are in:",output_dir)
-                        break
-                    else:
-                        print("Invalid input. Please enter 'y' or 'n'.")
+            else:
+                shutil.copy2(input_file, output_dir)
+                os.rename(output_file, destination)
+        
+        while True:
+                remove_original = input("Do you want to remove the original video file? (y/n): ").strip().lower()
+                if remove_original == 'y':
+                    os.remove(input_file)
+                    print(f"\nOriginal {A_or_V} file removed.The subtitles and compressed video are in: {output_dir}")
+                    break
+                elif remove_original == 'n':
+                    print(f"Original {A_or_V} file will be kept.\n")
+                    print(f"Original {A_or_V} is still located in:{input_file} \nThe subtitles and compressed video are in:{output_dir}")
+                    break
+                else:
+                    print("Invalid input. Please enter 'y' or 'n'.")
         print('Finished processing meeting.')
         print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
         more_meetings = input("Do you have more meetings to transcribe? (y/n): ").lower()
