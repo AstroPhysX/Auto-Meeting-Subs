@@ -1,0 +1,87 @@
+Input #0, matroska,webm, from '/home/aleluc/Videos/Meetings/2026-02-02 13-31-45.mkv':
+  Metadata:
+    ENCODER         : Lavf61.7.100
+  Duration: 00:29:21.42, start: 0.000000, bitrate: 5652 kb/s
+  Stream #0:0: Video: hevc (Main), 1 reference frame, yuv420p(tv, bt709, left), 5120x1440 [SAR 1:1 DAR 32:9], 60 fps, 60 tbr, 1k tbn
+      Metadata:
+        DURATION        : 00:29:21.421000000
+  Stream #0:1: Audio: aac (LC), 48000 Hz, stereo, fltp
+      Metadata:
+        title           : Track1
+        DURATION        : 00:29:21.386000000
+  Stream #0:2: Audio: aac (LC), 48000 Hz, stereo, fltp
+      Metadata:
+        title           : Track2
+        DURATION        : 00:29:21.386000000
+  Stream #0:3: Audio: aac (LC), 48000 Hz, stereo, fltp
+      Metadata:
+        title           : Track3
+        DURATION        : 00:29:21.386000000
+[out#0/matroska @ 0x5572bfffee00] No explicit maps, mapping streams automatically...
+[vost#0:0/hevc_nvenc @ 0x5572c003dac0] Created video stream from input stream 0:0
+[vist#0:0/hevc @ 0x5572bfff0c40] [dec:hevc @ 0x5572c005f280] Using auto hwaccel type cuda with new default device.
+[aost#0:1/copy @ 0x5572c003cd00] Created audio stream from input stream 0:1
+Stream mapping:
+  Stream #0:0 -> #0:0 (hevc (native) -> hevc (hevc_nvenc))
+  Stream #0:1 -> #0:1 (copy)
+[vost#0:0/hevc_nvenc @ 0x5572c003dac0] Starting thread...
+[vf#0:0 @ 0x5572c0045a80] Starting thread...
+[vist#0:0/hevc @ 0x5572bfff0c40] [dec:hevc @ 0x5572c005f280] Starting thread...
+[in#0/matroska,webm @ 0x5572bffe5b80] Starting thread...
+Press [q] to stop, [?] for help
+[hevc @ 0x5572c1002640] NVDEC capabilities:
+[hevc @ 0x5572c1002640] format supported: yes, max_mb_count: 262144
+[hevc @ 0x5572c1002640] min_width: 144, max_width: 8192
+[hevc @ 0x5572c1002640] min_height: 144, max_height: 8192
+[graph -1 input from stream 0:0 @ 0x7fe768004bc0] w:5120 h:1440 pixfmt:nv12 tb:1/1000 fr:60/1 sar:1/1 csp:bt709 range:tv
+[graph -1 input from stream 0:0 @ 0x7fe768004bc0] video frame properties congruent with link at pts_time: 0.021
+[hevc_nvenc @ 0x5572bfffe780] Using device cuda0 (type cuda) with hevc_nvenc encoder.
+[hevc_nvenc @ 0x5572bfffe780] Loaded Nvenc version 13.0
+[hevc_nvenc @ 0x5572bfffe780] Nvenc initialized successfully
+Output #0, matroska, to '/home/aleluc/Videos/test.mkv':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Video: hevc (Main), 1 reference frame, nv12(tv, bt709, progressive, left), 5120x1440 [SAR 1:1 DAR 32:9], q=2-31, 1500 kb/s, 60 fps, 1k tbn
+      Metadata:
+        DURATION        : 00:29:21.421000000
+        encoder         : Lavc61.19.101 hevc_nvenc
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/1500000 buffer size: 3000000 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) ([255][0][0][0] / 0x00FF), 48000 Hz, stereo, fltp
+      Metadata:
+        title           : Track1
+        DURATION        : 00:29:21.386000000
+[out#0/matroska @ 0x5572bfffee00] Starting thread...
+[in#0/matroska,webm @ 0x5572bffe5b80] Error during demuxing: Immediate exit requested
+[in#0/matroska,webm @ 0x5572bffe5b80] Terminating thread with return code 0 (success)
+[vist#0:0/hevc @ 0x5572bfff0c40] [dec:hevc @ 0x5572c005f280] Decoder thread received EOF packet
+[vist#0:0/hevc @ 0x5572bfff0c40] [dec:hevc @ 0x5572c005f280] Decoder returned EOF, finishing
+[vist#0:0/hevc @ 0x5572bfff0c40] [dec:hevc @ 0x5572c005f280] Terminating thread with return code 0 (success)
+[vf#0:0 @ 0x5572c0045a80] Filtergraph returned EOF, finishing
+[vf#0:0 @ 0x5572c0045a80] All consumers returned EOF
+[vf#0:0 @ 0x5572c0045a80] Terminating thread with return code 0 (success)
+[vost#0:0/hevc_nvenc @ 0x5572c003dac0] Error submitting a packet to the muxer: Immediate exit requested
+    Last message repeated 1 times
+[out#0/matroska @ 0x5572bfffee00] Error muxing a packet
+[out#0/matroska @ 0x5572bfffee00] Task finished with error code: -1414092869 (Immediate exit requested)
+[out#0/matroska @ 0x5572bfffee00] Terminating thread with return code -1414092869 (Immediate exit requested)
+[vost#0:0/hevc_nvenc @ 0x5572c003dac0] Encoder thread received EOF
+[vost#0:0/hevc_nvenc @ 0x5572c003dac0] Terminating thread with return code 0 (success)
+[out#0/matroska @ 0x5572bfffee00] Error writing trailer: Immediate exit requested
+[AVIOContext @ 0x5572c1c45a40] Statistics: 68943872 bytes written, 2 seeks, 274 writeouts
+[out#0/matroska @ 0x5572bfffee00] Error closing file: Immediate exit requested
+[out#0/matroska @ 0x5572bfffee00] Output file #0 (/home/aleluc/Videos/test.mkv):
+[out#0/matroska @ 0x5572bfffee00]   Output stream #0:0 (video): 8510 frames encoded; 8501 packets muxed (66488047 bytes); 
+[out#0/matroska @ 0x5572bfffee00]   Output stream #0:1 (audio): 6648 packets muxed (4810106 bytes); 
+[out#0/matroska @ 0x5572bfffee00]   Total: 15149 packets (71298153 bytes) muxed
+[out#0/matroska @ 0x5572bfffee00] video:64930KiB audio:4697KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame= 8501 fps=290 q=30.0 Lsize=   67328KiB time=00:02:21.70 bitrate=3892.4kbits/s speed=4.83x    
+[AVIOContext @ 0x5572bfff8e80] Statistics: 11948 bytes written, 0 seeks, 59 writeouts
+Error closing progress log, loss of information possible: Immediate exit requested
+[hevc_nvenc @ 0x5572bfffe780] Nvenc unloaded
+[in#0/matroska,webm @ 0x5572bffe5b80] Input file #0 (/home/aleluc/Videos/Meetings/2026-02-02 13-31-45.mkv):
+[in#0/matroska,webm @ 0x5572bffe5b80]   Input stream #0:0 (video): 8510 packets read (127030259 bytes); 8510 frames decoded; 0 decode errors; 
+[in#0/matroska,webm @ 0x5572bffe5b80]   Input stream #0:1 (audio): 6648 packets read (4810106 bytes); 
+[in#0/matroska,webm @ 0x5572bffe5b80]   Total: 15158 packets (131840365 bytes) demuxed
+[AVIOContext @ 0x5572c0001740] Statistics: 137736275 bytes read, 0 seeks
+Exiting normally, received signal 15.

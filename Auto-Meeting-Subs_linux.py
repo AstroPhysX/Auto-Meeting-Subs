@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="pyannote.audio")
 import os
 import subprocess
 import time
@@ -8,13 +10,13 @@ import gc
 import torch
 import filetype
 import sys
-import ffmpeg
 import sys
 import io
 from pathlib import Path
 import platform
 from contextlib import redirect_stdout, redirect_stderr
 from whisperx.diarize import DiarizationPipeline
+from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
 #Function to create dir in appdata
 def mkdir_localdata():
     if platform.system() == "Windows":
@@ -90,14 +92,25 @@ def convert_to_wav(input_file, output_filename_path, dev=False):
     print(f"\nffmpeg is converting {input_file} to WAV...")
     
     # Use ffmpeg to convert the input file to WAV
+    command = [
+        "ffmpeg",
+        "-y",
+        "-i", input_file,
+        "-vn",                 # no video
+        "-c:a", "pcm_s16le",   # WAV PCM encoding
+        output_filename_path
+    ]
     try:
         if dev:
-            ffmpeg.input(input_file).output(output_filename_path, acodec='pcm_s16le', vn=None).run(overwrite_output=True)
+            subprocess.run(command, check=True)
         else:
-            ffmpeg.input(input_file).output(output_filename_path, acodec='pcm_s16le', vn=None).run(overwrite_output=True, capture_stderr=True)
+            process = FfmpegProcess(command)
+            process.run()
         print(f"ffmpeg has converted {input_file} to {output_filename_path}\n")
-    except ffmpeg.Error as e:
-        print(f"An error occurred: {e.stderr.decode()}")
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred:\n{e.stderr.decode() if e.stderr else str(e)}")
+    except FfmpegProcessError as e:
+        print(f"An error occurred:\n{str(e)}")
     
     return output_filename_path
 
@@ -139,14 +152,25 @@ def compressing_audio_to_mp3(Audio_file_path, output_mp3_file, dev=False):
     print('--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print("ffmpeg is extracting the audio from your WMA file and converting it to MP3...")
     # Use ffmpeg to extract audio from the WMA file and save it as MP3
+    command = [
+        "ffmpeg",
+        "-y",
+        "-i", Audio_file_path,
+        "-c:a", "libmp3lame",
+        output_mp3_file
+    ]
     try:
         if dev:
-            ffmpeg.input(Audio_file_path).output(output_mp3_file, acodec='libmp3lame').run(overwrite_output=True)
+            subprocess.run(command, check=True)
         else:
-            ffmpeg.input(Audio_file_path).output(output_mp3_file, acodec='libmp3lame').run(overwrite_output=True, capture_stderr=True)
+            process = FfmpegProcess(command)
+            process.run()
         print(f"ffmpeg has converted {Audio_file_path} to {output_mp3_file}\n")
-    except ffmpeg.Error as e:
+    except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e.stderr.decode()}")
+    except FfmpegProcessError as e:
+        print(f"An error occurred: {str(e)}")
+
     print("ffmpeg has extracted and converted the audio to MP3 from", Audio_file_path, "\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
@@ -207,7 +231,8 @@ def detect_best_hwaccel():
     return "libx265"
 def compress_video_auto(input_file_path, output_file_path, dev=False):
     codec = detect_best_hwaccel()
-
+    print('--------------------------------------------------------------ffmpeg Compression---------------------------------------------------------------------------------------------')
+    
     cmd = [
         "ffmpeg",
         "-y",
@@ -222,7 +247,8 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
 
     try:
         print(f"Compressing video using {codec}...")
-        subprocess.run(cmd, check=True)
+        process = FfmpegProcess(cmd)
+        process.run()
     except subprocess.CalledProcessError:
         if codec.startswith("libx"):
             print(f"CPU fallback {codec} also failed. Cannot continue.")
@@ -230,9 +256,11 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
         # fallback to CPU encoder
         print(f"{codec} failed, falling back to CPU encoder libx265...")
         cmd[cmd.index(codec)] = "libx265"
-        subprocess.run(cmd, check=True)
+        process = FfmpegProcess(cmd)
+        process.run()
 
     print("Compression finished.\n")
+    print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
 
 # Function supress warning message when running whisperx
@@ -253,7 +281,7 @@ def suppress_specific_warning(func, *args, **kwargs):
 
 # Function runs whisperX
 def whisper(file, output_loc, model_location, model, subformat, num_speakers, token, batch_size, dev):
-    
+
     if torch.cuda.is_available():
         device = "cuda"
     elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
@@ -356,7 +384,7 @@ def main():
     compression = True if compression == 'y' else False
     batchsiz = int(batch_size)
     dev = False if developer == 'n' else True
-   
+
     
     while True:
         # Prompt user for input

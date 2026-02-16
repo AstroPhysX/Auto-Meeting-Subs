@@ -1,0 +1,75 @@
+[h264 @ 0x56147e95c9c0] Reinit context to 1920x1088, pix_fmt: yuv420p
+Input #0, matroska,webm, from '/home/aleluc/Github_repos/Auto-Meeting-Subs/Example Subtitle files with video/Meeting 2023.12.23.mkv':
+  Metadata:
+    creation_time   : 2023-12-23T17:43:42.000000Z
+    ENCODER         : Lavf59.27.100
+  Duration: 00:00:07.11, start: 0.000000, bitrate: 1879 kb/s
+  Stream #0:0: Video: h264 (High), 1 reference frame, yuv420p(tv, bt709, progressive, left), 1920x1080 [SAR 1:1 DAR 16:9], 60 fps, 60 tbr, 1k tbn (default)
+      Metadata:
+        DURATION        : 00:00:07.107000000
+  Stream #0:1: Audio: aac (LC), 44100 Hz, stereo, fltp (default)
+      Metadata:
+        title           : Track2
+        DURATION        : 00:00:07.058000000
+[out#0/matroska @ 0x56147ea2d800] No explicit maps, mapping streams automatically...
+[vost#0:0/hevc_nvenc @ 0x56147e9b0a40] Created video stream from input stream 0:0
+[vist#0:0/h264 @ 0x56147e951c40] [dec:h264 @ 0x56147e9babc0] Using auto hwaccel type cuda with new default device.
+[aost#0:1/copy @ 0x56147e9af080] Created audio stream from input stream 0:1
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> hevc (hevc_nvenc))
+  Stream #0:1 -> #0:1 (copy)
+[vost#0:0/hevc_nvenc @ 0x56147e9b0a40] Starting thread...
+[vf#0:0 @ 0x56147ea2d4c0] Starting thread...
+[vist#0:0/h264 @ 0x56147e951c40] [dec:h264 @ 0x56147e9babc0] Starting thread...
+[in#0/matroska,webm @ 0x56147e946b80] Starting thread...
+Press [q] to stop, [?] for help
+[h264 @ 0x56147fd41f00] NVDEC capabilities:
+[h264 @ 0x56147fd41f00] format supported: yes, max_mb_count: 65536
+[h264 @ 0x56147fd41f00] min_width: 48, max_width: 4096
+[h264 @ 0x56147fd41f00] min_height: 16, max_height: 4096
+[h264 @ 0x56147fd41f00] Reinit context to 1920x1088, pix_fmt: cuda
+[graph -1 input from stream 0:0 @ 0x7f81e4004bc0] w:1920 h:1080 pixfmt:nv12 tb:1/1000 fr:60/1 sar:1/1 csp:bt709 range:tv
+[graph -1 input from stream 0:0 @ 0x7f81e4004bc0] video frame properties congruent with link at pts_time: 0.023
+[hevc_nvenc @ 0x56147e95de40] Using device cuda0 (type cuda) with hevc_nvenc encoder.
+[hevc_nvenc @ 0x56147e95de40] Loaded Nvenc version 13.0
+[hevc_nvenc @ 0x56147e95de40] Nvenc initialized successfully
+Output #0, matroska, to '/home/aleluc/Videos/AutoMeetingSubsTesting/Meeting 2026.02.12.mkv':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Video: hevc (Main), 1 reference frame, nv12(tv, bt709, progressive, left), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 1500 kb/s, 60 fps, 1k tbn (default)
+      Metadata:
+        DURATION        : 00:00:07.107000000
+        encoder         : Lavc61.19.101 hevc_nvenc
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/1500000 buffer size: 3000000 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) ([255][0][0][0] / 0x00FF), 44100 Hz, stereo, fltp (default)
+      Metadata:
+        title           : Track2
+        DURATION        : 00:00:07.058000000
+[out#0/matroska @ 0x56147ea2d800] Starting thread...
+[in#0/matroska,webm @ 0x56147e946b80] EOF while reading input
+[in#0/matroska,webm @ 0x56147e946b80] Terminating thread with return code 0 (success)
+[vist#0:0/h264 @ 0x56147e951c40] [dec:h264 @ 0x56147e9babc0] Decoder thread received EOF packet
+[vist#0:0/h264 @ 0x56147e951c40] [dec:h264 @ 0x56147e9babc0] Decoder returned EOF, finishing
+[vist#0:0/h264 @ 0x56147e951c40] [dec:h264 @ 0x56147e9babc0] Terminating thread with return code 0 (success)
+[vf#0:0 @ 0x56147ea2d4c0] Filtergraph returned EOF, finishing
+[vf#0:0 @ 0x56147ea2d4c0] All consumers returned EOF
+[vf#0:0 @ 0x56147ea2d4c0] Terminating thread with return code 0 (success)
+[vost#0:0/hevc_nvenc @ 0x56147e9b0a40] Encoder thread received EOF
+[vost#0:0/hevc_nvenc @ 0x56147e9b0a40] Terminating thread with return code 0 (success)
+[out#0/matroska @ 0x56147ea2d800] All streams finished
+[out#0/matroska @ 0x56147ea2d800] Terminating thread with return code 0 (success)
+[AVIOContext @ 0x561480a4c980] Statistics: 2801040 bytes written, 2 seeks, 12 writeouts
+[out#0/matroska @ 0x56147ea2d800] Output file #0 (/home/aleluc/Videos/AutoMeetingSubsTesting/Meeting 2026.02.12.mkv):
+[out#0/matroska @ 0x56147ea2d800]   Output stream #0:0 (video): 423 frames encoded; 423 packets muxed (2688314 bytes); 
+[out#0/matroska @ 0x56147ea2d800]   Output stream #0:1 (audio): 304 packets muxed (105948 bytes); 
+[out#0/matroska @ 0x56147ea2d800]   Total: 727 packets (2794262 bytes) muxed
+[out#0/matroska @ 0x56147ea2d800] video:2625KiB audio:103KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.214511%
+frame=  423 fps=0.0 q=17.0 Lsize=    2735KiB time=00:00:07.05 bitrate=3174.0kbits/s speed=11.4x    
+[AVIOContext @ 0x56147e959e80] Statistics: 395 bytes written, 0 seeks, 2 writeouts
+[hevc_nvenc @ 0x56147e95de40] Nvenc unloaded
+[in#0/matroska,webm @ 0x56147e946b80] Input file #0 (/home/aleluc/Github_repos/Auto-Meeting-Subs/Example Subtitle files with video/Meeting 2023.12.23.mkv):
+[in#0/matroska,webm @ 0x56147e946b80]   Input stream #0:0 (video): 423 packets read (1557968 bytes); 423 frames decoded; 0 decode errors; 
+[in#0/matroska,webm @ 0x56147e946b80]   Input stream #0:1 (audio): 304 packets read (105948 bytes); 
+[in#0/matroska,webm @ 0x56147e946b80]   Total: 727 packets (1663916 bytes) demuxed
+[AVIOContext @ 0x56147e9627c0] Statistics: 1669826 bytes read, 0 seeks

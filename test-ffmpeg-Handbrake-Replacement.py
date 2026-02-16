@@ -1,6 +1,7 @@
 import subprocess
 import platform
 import shutil
+from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
 
 def detect_best_hwaccel():
     """
@@ -59,7 +60,7 @@ def detect_best_hwaccel():
     return "libx265"
 def compress_video_auto(input_file_path, output_file_path, dev=False):
     codec = detect_best_hwaccel()
-
+    
     cmd = [
         "ffmpeg",
         "-y",
@@ -74,7 +75,8 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
 
     try:
         print(f"Compressing video using {codec}...")
-        subprocess.run(cmd, check=True)
+        process = FfmpegProcess(cmd)
+        process.run()
     except subprocess.CalledProcessError:
         if codec.startswith("libx"):
             print(f"CPU fallback {codec} also failed. Cannot continue.")
@@ -82,7 +84,8 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
         # fallback to CPU encoder
         print(f"{codec} failed, falling back to CPU encoder libx265...")
         cmd[cmd.index(codec)] = "libx265"
-        subprocess.run(cmd, check=True)
+        process = FfmpegProcess(cmd)
+        process.run()
 
     print("Compression finished.\n")
 
