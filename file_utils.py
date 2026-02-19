@@ -1,6 +1,9 @@
 import os
-import filetype
 import platform
+import shutil
+import subprocess
+import filetype
+import json
 from pathlib import Path
 from datetime import datetime
 
@@ -40,16 +43,22 @@ def setup_app_environment():
     system = platform.system()
     if system in ["Linux", "Darwin"]:
         default_jit_cache = Path.home() / ".cache/torch/kernels"
-        if default_jit_cache.exists() and default_jit_cache.is_dir():
-            shutil.rmtree(default_jit_cache)
+        if default_jit_cache.exists():
+            if default_jit_cache.is_dir() and not default_jit_cache.is_symlink():
+                shutil.rmtree(default_jit_cache)
+            else:
+                default_jit_cache.unlink()
         default_jit_cache.parent.mkdir(parents=True, exist_ok=True)
         os.symlink(jit_kernel_dir, default_jit_cache)  # symlink for Linux/mac
     elif system == "Windows":
         # Windows: use a directory junction
         import subprocess
         default_jit_cache = Path(os.getenv("LOCALAPPDATA")) / "torch" / "kernels"
-        if default_jit_cache.exists() and default_jit_cache.is_dir():
-            shutil.rmtree(default_jit_cache)
+        if default_jit_cache.exists():
+            if default_jit_cache.is_dir() and not default_jit_cache.is_symlink():
+                shutil.rmtree(default_jit_cache)
+            else:
+                default_jit_cache.unlink()
         default_jit_cache.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["cmd", "/c", "mklink", "/J", str(default_jit_cache), str(jit_kernel_dir)], shell=True)
         
@@ -65,13 +74,13 @@ def audio_or_video(file):
         return 'audio'
     else:
         return 'unknown'
-    
+"""    
 # Function to get the file's date from its metadata
 def get_creation_date(file_path):
-    """
+    
     Returns the creation datetime from file metadata if available,
     otherwise falls back to filesystem modification time.
-    """
+    
     try:
         probe = ffmpeg.probe(file_path)
         # Most containers store this under 'format' -> 'tags' -> 'creation_time'
@@ -86,7 +95,7 @@ def get_creation_date(file_path):
     
     # Fallback
     return os.path.getmtime(file_path)
-
+"""
 
 # Function to get the file's date from its metadata without ffmpeg-python
 def get_creation_date(file_path):
