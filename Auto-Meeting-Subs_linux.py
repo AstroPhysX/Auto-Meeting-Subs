@@ -17,7 +17,7 @@ import platform
 from contextlib import redirect_stdout, redirect_stderr
 from whisperx.diarize import DiarizationPipeline
 from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
-#Function to create dir in appdata
+#Function to create dir in appdata (saved in config_manger)
 def mkdir_localdata():
     if platform.system() == "Windows":
         base_dir = Path(os.getenv("LOCALAPPDATA"))
@@ -29,7 +29,7 @@ def mkdir_localdata():
     appdata_dir.mkdir(parents=True, exist_ok=True)
     return str(appdata_dir)
 
-# Function to create the config.ini file and save parameters
+# Function to create the config.ini file and save parameters (saved in config_manger)
 def create_config(config_file):
     print("Looks like this is the first time you are running this program. We are going set up some necessary things for the program to run.")
     config = configparser.ConfigParser()
@@ -71,7 +71,7 @@ def create_config(config_file):
     with open(config_file, 'w') as cfgfile:
         config.write(cfgfile)
 
-# Function to read parameters from the config.ini file
+# Function to read parameters from the config.ini file (saved in config_manger)
 def read_config(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -86,7 +86,7 @@ def read_config(config_file):
     
     return token, output_dir, English, subtitle_format, compress, batch_size, developer
 
-# Function to convert any file type to audio    
+# Function to convert any file type to audio  (now in ffmpeg_utils)  
 def convert_to_wav(input_file, output_filename_path, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print(f"\nffmpeg is converting {input_file} to WAV...")
@@ -147,7 +147,7 @@ def get_creation_date(file_path):
     # Fallback
     return os.path.getmtime(file_path)
 
-# Function to compress/convert the audio to mp3
+# Function to compress/convert the audio to mp3 (now in ffmpeg_utils.py)
 def compressing_audio_to_mp3(Audio_file_path, output_mp3_file, dev=False):
     print('--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print("ffmpeg is extracting the audio from your WMA file and converting it to MP3...")
@@ -174,6 +174,7 @@ def compressing_audio_to_mp3(Audio_file_path, output_mp3_file, dev=False):
     print("ffmpeg has extracted and converted the audio to MP3 from", Audio_file_path, "\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
+# Detects hw for video compression (now in ffmpeg_utils)
 def detect_best_hwaccel():
     """
     Detect the best available hardware video encoder on the system.
@@ -229,6 +230,8 @@ def detect_best_hwaccel():
 
     # Default fallback
     return "libx265"
+
+# compresses video with ffmpeg (now in ffmpeg_utlis.py)
 def compress_video_auto(input_file_path, output_file_path, dev=False):
     codec = detect_best_hwaccel()
     print('--------------------------------------------------------------ffmpeg Compression---------------------------------------------------------------------------------------------')
@@ -263,7 +266,7 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
 
-# Function supress warning message when running whisperx
+# Function supress warning message when running whisperx (now in whisperx_pipeline.py)
 def suppress_specific_warning(func, *args, **kwargs):
     f_stdout = io.StringIO()
     f_stderr = io.StringIO()
@@ -279,7 +282,7 @@ def suppress_specific_warning(func, *args, **kwargs):
             print(line, file=sys.stderr)
     return result
 
-# Function runs whisperX
+# Function runs whisperX (now in whisperx_pipeline.py)
 def whisper(file, output_loc, model_location, model, subformat, num_speakers, token, batch_size, dev):
 
     if torch.cuda.is_available():
