@@ -1,47 +1,18 @@
+from file_utils import setup_app_environment, audio_or_video, get_creation_date
+APPDATA_DIR = setup_app_environment()
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pyannote.audio")
-
 import os
 import time
 import shutil
 from pathlib import Path
-
-# Import only the functions needed from your modules
-from config_manager import mkdir_localdata, create_config, read_config
-from file_utils import audio_or_video, get_creation_date
+from config_manager import create_config, read_config
 from ffmpeg_utils import convert_to_wav, compressing_audio_to_mp3, compress_video_auto
 from whisperx_pipeline import whisper
-#Function to create dir in appdata (mkdir_localdata saved in config_manger)
 
-# Function to create the config.ini file and save parameters (create_config(config_file) saved in config_manger)
-
-# Function to read parameters from the config.ini file (read_config(config_file) saved in config_manger)
-
-# Function to convert any file type to audio  (convert_to_wav(input_file, output_filename_path, dev=False) now in ffmpeg_utils)  
-
-
-# Function to determine if file is Audio or Video (audio_or_video(file) now in file_utils.py)
-
-    
-# Function to get the file's date from its metadata (get_creation_date(file_path) now in file_utils.py)
-
-
-# Function to compress/convert the audio to mp3 (compressing_audio_to_mp3(Audio_file_path, output_mp3_file, dev=False) now in ffmpeg_utils.py)
-
-# Detects hw for video compression (detect_best_hwaccel() now in ffmpeg_utils)
-
-# compresses video with ffmpeg (compress_video_auto(input_file_path, output_file_path, dev=False) now in ffmpeg_utlis.py)
-
-
-# Function supress warning message when running whisperx (suppress_specific_warning(func, *args, **kwargs) now in whisperx_pipeline.py)
-
-
-# Function runs whisperX (whisper(file, output_loc, model_location, model, subformat, num_speakers, token, batch_size, dev) now in whisperx_pipeline.py)
-
-        
 def main():
     # Check if config.ini exists, if not, create it and save default parameters
-    appdata_dir = mkdir_localdata()
+    appdata_dir = APPDATA_DIR
     config_dir = os.path.join(appdata_dir,'config.ini')
     
     if not os.path.exists(config_dir):

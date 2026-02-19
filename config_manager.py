@@ -3,18 +3,6 @@ import platform
 import configparser
 from pathlib import Path
 
-#Function to create dir in appdata
-def mkdir_localdata():
-    if platform.system() == "Windows":
-        base_dir = Path(os.getenv("LOCALAPPDATA"))
-    else:
-        # Linux / macOS
-        base_dir = Path.home() / ".local" / "share"
-
-    appdata_dir = base_dir / "Auto-Meeting-Subs"
-    appdata_dir.mkdir(parents=True, exist_ok=True)
-    return str(appdata_dir)
-
 # Function to create the config.ini file and save parameters
 def create_config(config_file):
     print("Looks like this is the first time you are running this program. We are going set up some necessary things for the program to run.")

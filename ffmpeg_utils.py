@@ -1,12 +1,13 @@
 import subprocess
 import platform
-
+import os
+from pathlib import Path
 from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
 
 def convert_to_wav(input_file, output_filename_path, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
     print(f"\nffmpeg is converting {input_file} to WAV...")
-    
+    null_device = "NUL" if os.name == "nt" else "/dev/null"
     # Use ffmpeg to convert the input file to WAV
     command = [
         "ffmpeg",
@@ -20,7 +21,7 @@ def convert_to_wav(input_file, output_filename_path, dev=False):
         if dev:
             subprocess.run(command, check=True)
         else:
-            process = FfmpegProcess(command)
+            process = FfmpegProcess(command, ffmpeg_log_file=Path(null_device))
             process.run()
         print(f"ffmpeg has converted {input_file} to {output_filename_path}\n")
     except subprocess.CalledProcessError as e:
@@ -116,9 +117,18 @@ def detect_best_hwaccel():
 
 # compresses video with ffmpeg 
 def compress_video_auto(input_file_path, output_file_path, dev=False):
-    codec = detect_best_hwaccel()
+    """
+    Compress a video using FFmpeg with hardware acceleration if available.
+    Falls back to CPU if the hardware codec fails.
+    Suppresses log file creation by redirecting logs to null device.
+    """
+
+    codec = detect_best_hwaccel()  # Your function to choose best codec
     print('--------------------------------------------------------------ffmpeg Compression---------------------------------------------------------------------------------------------')
-    
+
+    # Cross-platform null device for discarding FFmpeg logs
+    null_device = "NUL" if os.name == "nt" else "/dev/null"
+
     cmd = [
         "ffmpeg",
         "-y",
@@ -132,9 +142,13 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
     ]
 
     try:
-        print(f"Compressing video using {codec}...")
-        process = FfmpegProcess(cmd) 
-        process.run()
+        if dev:
+            # subprocess version (no wrapper)
+            subprocess.run(cmd, check=True)
+        else:
+            print(f"Compressing video using {codec}...")
+            process = FfmpegProcess(cmd, ffmpeg_log_file=Path(null_device))
+            process.run()
     except subprocess.CalledProcessError:
         if codec.startswith("libx"):
             print(f"CPU fallback {codec} also failed. Cannot continue.")
@@ -142,8 +156,12 @@ def compress_video_auto(input_file_path, output_file_path, dev=False):
         # fallback to CPU encoder
         print(f"{codec} failed, falling back to CPU encoder libx265...")
         cmd[cmd.index(codec)] = "libx265"
-        process = FfmpegProcess(cmd)
-        process.run()
+        if dev:
+            subprocess.run(cmd, check=True)
+        else:
+            print("Compressing video using libx265...")
+            process = FfmpegProcess(cmd, ffmpeg_log_file=Path(null_device))
+            process.run()
 
     print("Compression finished.\n")
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
