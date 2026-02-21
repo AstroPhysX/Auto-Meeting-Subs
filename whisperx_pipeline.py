@@ -69,8 +69,7 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
             print('Audio failed to load', e)
         raise RuntimeWarning('Audio failed to load')
 
-
-    result = modload.transcribe(audio, batch_size=batch_size, print_progress=True, verbose=dev)
+    result = modload.transcribe(audio, batch_size=batch_size, print_progress=False, verbose=dev)
     if dev:
         print('Transcription completed')
     
