@@ -11,83 +11,13 @@ import json
 import time
 from tqdm import tqdm
 import requests
-
-
-# -------------------------
-# CONFIG
-# -------------------------
-
-CHUNK_SIZE = 4000  # characters per chunk (safe approx)
-
-# -------------------------
-# OLLAMA INSTALL CHECK and RUNNING
-# -------------------------
-
-def is_ollama_installed():
-    return shutil.which("ollama") is not None
-
-
-def install_ollama():
-    system = platform.system()
-
-    print(">Installing Ollama...")
-
-    if system == "Darwin" or system == "Linux":
-        subprocess.run("curl -fsSL https://ollama.com/install.sh | sh", shell=True)
-    elif system == "Windows":
-        subprocess.run(["powershell", "-Command", "irm https://ollama.com/install.ps1 | iex"])
-    else:
-        raise Exception("Unsupported OS")
-
-
-def is_ollama_running():
-    try:
-        r = requests.get("http://localhost:11434/api/tags", timeout=2)
-        return r.status_code == 200
-    except:
-        return False
-
-def start_ollama():
-    print('Starting ollama')
-    system = platform.system()
-
-    if system == "Linux":
-        password = getpass.getpass("Enter your sudo password to start Ollama: ")
-        cmd = ["sudo", "-S", "systemctl", "start", "ollama"]
-        subprocess.run(cmd, input=(password + "\n").encode(), check=True)
-        print("Ollama service started.")
-    else:
-        # macOS and Windows
-        subprocess.Popen(["ollama", "serve"],
-                         stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL)
-
-def wait_for_ollama(timeout=30):
-    start = time.time()
-
-    while time.time() - start < timeout:
-        if is_ollama_running():
-            print(">Ollama server is ready.")
-            return
-        time.sleep(1)
-
-    raise RuntimeError("Ollama did not start in time.")
-
-if not is_ollama_installed():
-    install_ollama()
-
-if not is_ollama_running():
-    print(">Starting Ollama...")
-    start_ollama()
-
-wait_for_ollama()
-
+from ollama_services import ollama_checks
+ollama_checks()
 import ollama
 
 # -------------------------
 # HARDWARE DETECTION
 # -------------------------
-
 def select_model():
     ram_gb = psutil.virtual_memory().total / (1024**3)
 
@@ -100,7 +30,6 @@ def select_model():
 # -------------------------
 # MODEL CHECK / DOWNLOAD
 # -------------------------
-
 def ensure_model(model):
     try:
         ollama.show(model)
@@ -131,10 +60,10 @@ def ensure_model(model):
         print('Error:', e.error)
     raise RuntimeError(f"Model {model} not found after pull")
 
+
 # -------------------------------------------------
 # Transcript Cleaning
 # -------------------------------------------------
-
 def extract_text(file_path, keep_speakers=False, clean_disfluency=True):
     file_path = Path(file_path)
     suffix = file_path.suffix.lower()
@@ -158,10 +87,10 @@ def extract_text(file_path, keep_speakers=False, clean_disfluency=True):
         elif "text" in data:
             content = data["text"]
         else:
-            raise ValueError("Unrecognized JSON transcript format")
+            raise ValueError(">Unrecognized JSON transcript format")
 
     else:
-        raise ValueError(f"Unsupported file type: {suffix}")
+        raise ValueError(f">Unsupported file type: {suffix}")
 
     # -------------------------------------------------
     # Remove subtitle artifacts (format-agnostic)
@@ -220,25 +149,11 @@ def extract_text(file_path, keep_speakers=False, clean_disfluency=True):
     content = re.sub(r"[ \t]+", " ", content)   # normalize spaces
 
     return content.strip()
+
+
 # -------------------------
 # CHUNKING
 # -------------------------
-
-def chunk_text(text, size=CHUNK_SIZE):
-    return [text[i:i+size] for i in range(0, len(text), size)]
-
-def chunk_by_speakers(transcript, turns_per_chunk=10):
-    chunks = []
-    current = []
-    for i, (speaker, text) in enumerate(transcript):
-        current.append(f"{speaker}: {text}")
-        if (i + 1) % turns_per_chunk == 0:
-            chunks.append("\n".join(current))
-            current = []
-    if current:
-        chunks.append("\n".join(current))
-    return chunks
-
 def chunk_by_sentences(text, max_chars=2000):
     sentences = re.split(r'(?<=[.!?])\s+', text)
     chunks = []
@@ -255,10 +170,11 @@ def chunk_by_sentences(text, max_chars=2000):
         chunks.append(current.strip())
 
     return chunks
+
+
 # -------------------------
 # OLLAMA CALL
 # -------------------------
-
 def generate(model, prompt):
     response = ollama.chat(
         model=model,
@@ -274,14 +190,12 @@ def generate(model, prompt):
 # -------------------------
 # SUMMARIZATION PIPELINE
 # -------------------------
-
-def summarize_transcript(transcript, model):
+def summarize_pipeline(transcript, model):
     chunks = chunk_by_sentences(transcript)
 
     summaries = []
 
-    for i, chunk in enumerate(chunks):
-        print(f"Summarizing chunk {i+1}/{len(chunks)}")
+    for chunk in tqdm(chunks, desc="Summarizing", unit="chunk"):
 
         prompt = f"""
 Summarize the following transcript section clearly and concisely.
@@ -316,10 +230,9 @@ Section Summaries:
 
 
 # -------------------------
-# MAIN
+# MAIN Summarizing function
 # -------------------------
-
-def main(transcript_path):
+def summarize_transcript(transcript_path, dev=False):
 
     model = select_model()
     print(f">Selected model: {model}")
@@ -328,13 +241,11 @@ def main(transcript_path):
 
     transcript = extract_text(transcript_path, keep_speakers=True)
 
-    final_summary = summarize_transcript(transcript, model)
+    final_summary = summarize_pipeline(transcript, model)
 
     output_path = Path(transcript_path).with_suffix(".summary.txt")
     with open(output_path, "w", encoding="utf-8") as f:
+        f.write("Remeber that this is an AI summary and it may have made major mistakes in its output.")
         f.write(final_summary)
 
     print(f"\n>Summary saved to: {output_path}")
-
-Trandscript_Path="/home/aleluc/Videos/AutoMeetingSubsTesting/Meeting 2026.01.29.vtt"
-main(Trandscript_Path)

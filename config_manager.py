@@ -11,7 +11,7 @@ def create_config(config_file):
         'token': input("Enter the Hugging face API token: "),
     }
     config['OUTPUT'] = {
-        'output_dir': input("Enter the output directory path: ").strip('"'),
+        'output_dir': input("Enter the output directory path: ").strip('"\''),
     }
     while True:
         english = input("Are the meetings in english? (y/n): ").lower()
