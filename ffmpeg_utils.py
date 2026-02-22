@@ -1,11 +1,100 @@
 import subprocess
 import platform
 import os
+import shutil
+import stat
+import tarfile
+import zipfile
+import urllib.request
 from pathlib import Path
 from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
 
+
+def install_ffmpeg(appdata_dir: Path) -> Path:
+    ffmpeg_root = appdata_dir / "ffmpeg"
+    ffmpeg_dir = ffmpeg_root / "bin"
+    ffmpeg_dir.mkdir(parents=True, exist_ok=True)
+
+    system = platform.system().lower()
+    arch = platform.machine().lower()
+
+    ffmpeg_binary = "ffmpeg.exe" if system == "windows" else "ffmpeg"
+    ffmpeg_path = ffmpeg_dir / ffmpeg_binary
+
+    # Already installed?
+    if ffmpeg_path.exists():
+        return ffmpeg_path
+
+    print("Installing FFmpeg...")
+
+    if system == "windows":
+        # Windows 64-bit essentials build
+        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+        archive_path = ffmpeg_root / "ffmpeg.zip"
+
+        urllib.request.urlretrieve(ffmpeg_url, archive_path)
+
+        with zipfile.ZipFile(archive_path, "r") as zip_ref:
+            zip_ref.extractall(ffmpeg_root)
+
+        extracted = next(ffmpeg_root.glob("ffmpeg-*"))
+        shutil.move(extracted / "bin" / "ffmpeg.exe", ffmpeg_path)
+
+        shutil.rmtree(extracted)
+        archive_path.unlink()
+
+    elif system == "darwin":
+        # Detect Apple Silicon vs Intel
+        if arch in ["arm64", "aarch64"]:
+            ffmpeg_url = "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"
+        else:
+            ffmpeg_url = "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"
+
+        archive_path = ffmpeg_root / "ffmpeg.zip"
+
+        urllib.request.urlretrieve(ffmpeg_url, archive_path)
+
+        with zipfile.ZipFile(archive_path, "r") as zip_ref:
+            zip_ref.extractall(ffmpeg_dir)
+
+        archive_path.unlink()
+
+    elif system == "linux":
+        # Detect architecture
+        if arch in ["x86_64", "amd64"]:
+            ffmpeg_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+        elif arch in ["arm64", "aarch64"]:
+            ffmpeg_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz"
+        else:
+            raise RuntimeError(f"Unsupported Linux architecture: {arch}")
+
+        archive_path = ffmpeg_root / "ffmpeg.tar.xz"
+
+        urllib.request.urlretrieve(ffmpeg_url, archive_path)
+
+        with tarfile.open(archive_path, "r:xz") as tar_ref:
+            tar_ref.extractall(ffmpeg_root)
+
+        extracted = next(ffmpeg_root.glob("ffmpeg-*"))
+        shutil.move(extracted / "ffmpeg", ffmpeg_path)
+
+        shutil.rmtree(extracted)
+        archive_path.unlink()
+
+    else:
+        raise RuntimeError(f"Unsupported OS: {system}")
+
+    # Ensure executable permissions on Unix
+    if system != "windows":
+        ffmpeg_path.chmod(ffmpeg_path.stat().st_mode | stat.S_IEXEC)
+
+    print("FFmpeg installed at:", ffmpeg_path)
+    return ffmpeg_path
+
+
 def convert_to_wav(input_file, output_filename_path, dev=False):
     print('\n--------------------------------------------------------------ffmpeg---------------------------------------------------------------------------------------------')
+
     print(f"\nffmpeg is converting {input_file} to WAV...")
     null_device = "NUL" if os.name == "nt" else "/dev/null"
     # Use ffmpeg to convert the input file to WAV

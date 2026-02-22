@@ -6,6 +6,7 @@ import filetype
 import json
 from pathlib import Path
 from datetime import datetime
+from ffmpeg_utils import install_ffmpeg
 
 def setup_app_environment():
     if platform.system() == "Windows":
@@ -62,7 +63,15 @@ def setup_app_environment():
         default_jit_cache.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["cmd", "/c", "mklink", "/J", str(default_jit_cache), str(jit_kernel_dir)], shell=True)
         
+    # Install FFmpeg inside the same function
+    ffmpeg_path = install_ffmpeg(appdata_dir)
+
+    # Make it globally accessible in this session
+    os.environ["FFMPEG_PATH"] = str(ffmpeg_path)
+    os.environ["PATH"] = str(ffmpeg_path.parent) + os.pathsep + os.environ.get("PATH", "")
+
     return appdata_dir
+
 # Function to determine if file is Audio or Video
 def audio_or_video(file):
     kind = filetype.guess(file)
