@@ -49,7 +49,7 @@ def wait_for_ollama(timeout=30):
 
     while time.time() - start < timeout:
         if is_ollama_running():
-            print(">Ollama server is ready.")
+            #print(">Ollama server is ready.")
             return
         time.sleep(1)
 

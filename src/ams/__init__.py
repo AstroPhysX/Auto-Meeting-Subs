@@ -1,0 +1,1 @@
+from .ams import main

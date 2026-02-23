@@ -4,7 +4,6 @@ import io
 import gc
 import torch
 import whisperx
-
 from contextlib import redirect_stdout, redirect_stderr
 from whisperx.diarize import DiarizationPipeline
 

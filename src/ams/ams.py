@@ -1,4 +1,4 @@
-from file_utils import setup_app_environment, audio_or_video, get_creation_date
+from .file_utils import setup_app_environment, audio_or_video, get_creation_date
 APPDATA_DIR = setup_app_environment()
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pyannote.audio")
@@ -6,10 +6,10 @@ import os
 import time
 import shutil
 from pathlib import Path
-from config_manager import create_config, read_config
-from ffmpeg_utils import convert_to_wav, compressing_audio_to_mp3, compress_video_auto
-from whisperx_pipeline import whisper
-from summarization_via_ollama import summarize_transcript
+from .config_manager import create_config, read_config
+from .ffmpeg_utils import convert_to_wav, compressing_audio_to_mp3, compress_video_auto
+from .whisperx_pipeline import whisper
+from .summarization_via_ollama import summarize_transcript
 
 def main():
     # Check if config.ini exists, if not, create it and save default parameters
@@ -179,7 +179,3 @@ def main():
                 break
             else:
                 print("Invalid input. Please enter 'y' or 'n'.")
-        
-
-if __name__ == "__main__":
-    main()
