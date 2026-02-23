@@ -11,7 +11,7 @@ import json
 import time
 from tqdm import tqdm
 import requests
-from .ollama_services import ollama_checks
+from ollama_services import ollama_checks
 ollama_checks()
 import ollama
 

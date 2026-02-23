@@ -6,7 +6,7 @@ import filetype
 import json
 from pathlib import Path
 from datetime import datetime
-from .ffmpeg_utils import install_ffmpeg
+from ffmpeg_utils import install_ffmpeg
 
 def setup_app_environment():
     if platform.system() == "Windows":
