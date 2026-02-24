@@ -28,7 +28,7 @@ jobs:
             pacman -Sy --noconfirm unzip git base-devel
 
             echo 'Extracting release zip...'
-            unzip release_zips/Auto-Meeting-Subs-linux-v1.0.zip -d extracted
+            unzip release_zips/Auto-Meeting-Subs-linux.zip -d extracted
             INSTALL_PATH=\$(find extracted -name install.sh | head -n 1)
             echo 'Found installer at: ' \$INSTALL_PATH
 

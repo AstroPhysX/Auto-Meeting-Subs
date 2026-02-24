@@ -12,34 +12,38 @@ $IconPath = "$InstallDir\icons\windows.ico"
 
 # Python settings
 $PythonVersion = "3.10.11"
-$PythonEmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip"
-$PythonDir = "$InstallDir\python"
-$PythonExe = "$PythonDir\python.exe"
+$PythonInstallerUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-amd64.exe"
+$PythonExe = "python.exe"  # Will be added to PATH after installation
 
 Write-Host "Installing $AppName..."
 
 # ----------------------------
-# Function: Install Python via embeddable ZIP
+# Function: Install Python via full installer
 # ----------------------------
 function Install-Python {
-    Write-Host "Python 3.10 not found. Downloading embeddable zip..."
-    $TempZip = "$env:TEMP\python-$PythonVersion-embed-amd64.zip"
-    Invoke-WebRequest $PythonEmbedUrl -OutFile $TempZip
-    Expand-Archive -Path $TempZip -DestinationPath $PythonDir
-    Remove-Item $TempZip
-    Write-Host "Python 3.10 extracted to $PythonDir"
+    Write-Host "Python $PythonVersion not found. Downloading installer..."
+    $TempInstaller = "$env:TEMP\python-$PythonVersion-amd64.exe"
+    Invoke-WebRequest $PythonInstallerUrl -OutFile $TempInstaller
+
+    Write-Host "Running Python installer silently..."
+    Start-Process -FilePath $TempInstaller -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1 Include_test=0" -Wait
+
+    Remove-Item $TempInstaller
+    Write-Host "Python $PythonVersion installed."
 }
 
 # ----------------------------
 # Check if Python exists
 # ----------------------------
-if (!(Test-Path $PythonExe)) {
+try {
+    & python --version | Out-Null
+} catch {
     Install-Python
 }
 
-# Verify Python works
+# Verify Python installed
 try {
-    & $PythonExe --version
+    & python --version
 } catch {
     Write-Host "Python installation failed. Please install manually."
     exit 1
@@ -72,7 +76,7 @@ if (Test-Path $UninstallBatSource) { Copy-Item $UninstallBatSource -Destination 
 # Create virtual environment
 # ----------------------------
 Set-Location $InstallDir
-& $PythonExe -m venv venv
+& python -m venv venv
 
 # Upgrade pip and install requirements
 $VenvPython = "$InstallDir\venv\Scripts\python.exe"
