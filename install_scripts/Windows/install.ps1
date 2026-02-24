@@ -1,5 +1,6 @@
-# Requires: PowerShell 5+ (comes with Windows 10+)
-# Run with: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\install.ps1
+# Requires: PowerShell 5+
+# Run with:
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\install.ps1
 
 $ErrorActionPreference = "Stop"
 
@@ -10,95 +11,83 @@ $InstallDir = "$UserProfile\AppData\Local\$AppID"
 $StartMenuDir = "$UserProfile\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\$AppID"
 $IconPath = "$InstallDir\icons\windows.ico"
 
-# Python settings
+# ----------------------------
+# Python (Embedded)
+# ----------------------------
 $PythonVersion = "3.10.11"
-$PythonInstallerUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-amd64.exe"
-$PythonExe = "python.exe"  # Will be added to PATH after installation
+$PythonEmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip"
+$PythonDir = "$InstallDir\python"
+$PythonExe = "$PythonDir\python.exe"
 
 Write-Host "Installing $AppName..."
 
 # ----------------------------
-# Function: Install Python via full installer
-# ----------------------------
-function Install-Python {
-    Write-Host "Python $PythonVersion not found. Downloading installer..."
-    $TempInstaller = "$env:TEMP\python-$PythonVersion-amd64.exe"
-    Invoke-WebRequest $PythonInstallerUrl -OutFile $TempInstaller
-
-    Write-Host "Running Python installer silently..."
-    Start-Process -FilePath $TempInstaller -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1 Include_test=0" -Wait
-
-    Remove-Item $TempInstaller
-    Write-Host "Python $PythonVersion installed."
-}
-
-# ----------------------------
-# Check if Python exists
-# ----------------------------
-try {
-    & python --version | Out-Null
-} catch {
-    Install-Python
-}
-
-# Verify Python installed
-try {
-    & python --version
-} catch {
-    Write-Host "Python installation failed. Please install manually."
-    exit 1
-}
-
-# ----------------------------
-# Prepare installation directory
+# Create install directory
 # ----------------------------
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-
-# Copy code folder into install dir
-Copy-Item -Recurse -Force -Path ".\code\*" -Destination $InstallDir
-
-# Copy icons folder into install dir
-Copy-Item -Recurse -Force -Path ".\icons\*" -Destination "$InstallDir\icons"
+New-Item -ItemType Directory -Force -Path $PythonDir | Out-Null
 
 # ----------------------------
-# Copy uninstall scripts
+# Download & Extract Embedded Python
 # ----------------------------
-$UninstallPs1Source = Join-Path $PSScriptRoot "uninstall.ps1"
-$UninstallPs1Dest   = Join-Path $InstallDir "uninstall.ps1"
+if (!(Test-Path $PythonExe)) {
 
-$UninstallBatSource = Join-Path $PSScriptRoot "..\uninstall.bat"
-$UninstallBatDest   = Join-Path $InstallDir "uninstall.bat"
+    Write-Host "Downloading embedded Python $PythonVersion..."
+    $TempZip = "$env:TEMP\python-embed.zip"
 
-if (Test-Path $UninstallPs1Source) { Copy-Item $UninstallPs1Source -Destination $UninstallPs1Dest -Force }
-if (Test-Path $UninstallBatSource) { Copy-Item $UninstallBatSource -Destination $UninstallBatDest -Force }
+    Invoke-WebRequest $PythonEmbedUrl -OutFile $TempZip
+    Expand-Archive $TempZip -DestinationPath $PythonDir -Force
+    Remove-Item $TempZip
 
-# ----------------------------
-# Create virtual environment
-# ----------------------------
-Set-Location $InstallDir
-& python -m venv venv
+    Write-Host "Python extracted to $PythonDir"
 
-# Upgrade pip and install requirements
-$VenvPython = "$InstallDir\venv\Scripts\python.exe"
-$VenvPip = "$InstallDir\venv\Scripts\pip.exe"
-& $VenvPip install --upgrade pip
-& $VenvPip install -r "$InstallDir\requirements.txt"
+    # Enable site-packages (required)
+    $PthFile = Get-ChildItem "$PythonDir\python310._pth"
+    (Get-Content $PthFile.FullName) -replace "#import site", "import site" |
+        Set-Content $PthFile.FullName
+}
 
 # ----------------------------
-# Create launcher script
+# Verify Python
+# ----------------------------
+& $PythonExe --version
+
+# ----------------------------
+# Install pip (embed does not include it)
+# ----------------------------
+Write-Host "Bootstrapping pip..."
+$GetPip = "$env:TEMP\get-pip.py"
+Invoke-WebRequest https://bootstrap.pypa.io/get-pip.py -OutFile $GetPip
+& $PythonExe $GetPip
+Remove-Item $GetPip
+
+# ----------------------------
+# Copy Application Files
+# ----------------------------
+Copy-Item -Recurse -Force ".\code\*" -Destination $InstallDir
+Copy-Item -Recurse -Force ".\icons\*" -Destination "$InstallDir\icons"
+
+# ----------------------------
+# Install Requirements (into embedded Python)
+# ----------------------------
+Write-Host "Installing dependencies..."
+& "$PythonDir\Scripts\pip.exe" install --upgrade pip
+& "$PythonDir\Scripts\pip.exe" install -r "$InstallDir\requirements.txt"
+
+# ----------------------------
+# Create Launcher (direct execution)
 # ----------------------------
 $Launcher = "$InstallDir\launch.ps1"
+
 @"
-`$Venv = '$InstallDir\venv\Scripts\Activate.ps1'
-.`$Venv
-python '$InstallDir\main.py' `$args
+& '$PythonExe' '$InstallDir\main.py' `$args
 "@ | Set-Content $Launcher
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 # ----------------------------
-# Create Start Menu shortcut
+# Create Start Menu Shortcut
 # ----------------------------
 New-Item -ItemType Directory -Force -Path $StartMenuDir | Out-Null
+
 $Shortcut = "$StartMenuDir\$AppName.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell
 $ShortcutObject = $WScriptShell.CreateShortcut($Shortcut)
@@ -108,5 +97,7 @@ $ShortcutObject.IconLocation = $IconPath
 $ShortcutObject.WorkingDirectory = $InstallDir
 $ShortcutObject.Save()
 
+Write-Host ""
 Write-Host "Installation complete!"
-Write-Host "You can launch $AppName from Start Menu or by running $Launcher"
+Write-Host "Fully isolated Python environment installed."
+Write-Host "To uninstall: delete $InstallDir"

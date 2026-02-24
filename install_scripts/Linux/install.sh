@@ -6,51 +6,58 @@ APP_ID="auto-meeting-subs"
 INSTALL_DIR="$HOME/.local/share/$APP_ID"
 BIN_DIR="$HOME/.local/bin"
 DESKTOP_FILE="$HOME/.local/share/applications/$APP_ID.desktop"
-PYTHON_BIN=$(command -v python3.10 || command -v python3 || true)
+PYTHON_VERSION="3.10.11"
+PYTHON_PREFIX="$INSTALL_DIR/python"
+PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
 
 echo "Installing $APP_NAME..."
 
 install_python() {
-    echo "Attempting to install Python 3.10..."
+    echo "Installing isolated Python $PYTHON_VERSION..."
 
-    if command -v dnf &> /dev/null; then
-        sudo dnf install -y python3.10
-
-    elif command -v apt &> /dev/null; then
+    # Install build dependencies
+    if command -v apt &> /dev/null; then
         sudo apt update
-        sudo apt install -y python3.10
+        sudo apt install -y build-essential libssl-dev zlib1g-dev \
+            libncurses5-dev libffi-dev libsqlite3-dev \
+            libbz2-dev libreadline-dev wget curl
+
+    elif command -v dnf &> /dev/null; then
+        sudo dnf groupinstall -y "Development Tools"
+        sudo dnf install -y openssl-devel bzip2-devel libffi-devel \
+            zlib-devel readline-devel sqlite-devel wget
 
     elif command -v pacman &> /dev/null; then
-        sudo pacman -Sy --noconfirm python310
-
-    elif command -v zypper &> /dev/null; then
-        sudo zypper install -y python310 
-
-    elif command -v apk &> /dev/null; then
-        sudo apk add --no-cache python3=3.10*
+        sudo pacman -Sy --noconfirm base-devel openssl zlib \
+            bzip2 libffi readline sqlite wget
 
     else
-        echo "Unsupported distribution."
-        echo "Please install Python 3.10 manually."
+        echo "Unsupported distro for automatic build."
         exit 1
     fi
+
+    mkdir -p "$INSTALL_DIR/src"
+    cd "$INSTALL_DIR/src"
+
+    wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz
+    tar -xzf Python-$PYTHON_VERSION.tgz
+    cd Python-$PYTHON_VERSION
+
+    ./configure --prefix="$PYTHON_PREFIX" --enable-optimizations
+    make -j$(nproc)
+    make install
+
+    echo "Python installed at $PYTHON_PREFIX"
 }
-# Check Python
-PY_VER=$($PYTHON_BIN -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || echo "0.0.0")
 
-if [[ "$PY_VER" != 3.10* ]]; then
-    echo "Python 3.10 not found. Installing..."
+# Install Python if missing
+if [ ! -x "$PYTHON_BIN" ]; then
     install_python
-
-    # Recheck after installation
-    PYTHON_BIN=$(command -v python3.10 || command -v python3 || true)
-    PY_VER=$($PYTHON_BIN -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || echo "0.0.0")
-
-    if [[ "$PY_VER" != 3.10* ]]; then
-        echo "Python 3.10 installation failed."
-        exit 1
-    fi
 fi
+
+# Ensure pip exists
+"$PYTHON_BIN" -m ensurepip --upgrade
+"$PYTHON_BIN" -m pip install --upgrade pip
 
 # Create install directory
 mkdir -p "$INSTALL_DIR"
@@ -71,20 +78,15 @@ cd "$INSTALL_DIR"
 # Ensure directories exist
 mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$HOME/.local/share/applications"
 
-# Create virtual environment
-$PYTHON_BIN -m venv venv
-source venv/bin/activate
-
-pip install --upgrade pip
-pip install -r requirements.txt
+# Installing Dependencies
+"$PYTHON_BIN" -m pip install -r "$INSTALL_DIR/requirements.txt"
 
 # Create launcher script in ~/.local/bin
 mkdir -p "$BIN_DIR"
 
 cat > "$BIN_DIR/$APP_ID" << EOF
 #!/usr/bin/env bash
-source "$INSTALL_DIR/venv/bin/activate"
-python "$INSTALL_DIR/main.py" "\$@"
+"$PYTHON_BIN" "$INSTALL_DIR/main.py" "\$@"
 EOF
 
 chmod +x "$BIN_DIR/$APP_ID"

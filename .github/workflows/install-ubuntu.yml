@@ -39,10 +39,6 @@ jobs:
         run: |
           test -f "$HOME/.local/bin/auto-meeting-subs"
 
-      - name: Verify venv created
-        run: |
-          test -d "$HOME/.local/share/auto-meeting-subs/venv"
-
       - name: Test app launch (non-interactive smoke test)
         run: |
           timeout 5 "$HOME/.local/bin/auto-meeting-subs" || true

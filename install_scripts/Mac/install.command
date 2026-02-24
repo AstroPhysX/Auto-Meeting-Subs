@@ -1,70 +1,95 @@
 #!/usr/bin/env bash
 set -e
 
+# ----------------------------
+# Configuration
+# ----------------------------
 APP_NAME="Auto-Meeting-Subs"
 APP_ID="Auto-Meeting-Subs"
 APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
 APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
-PYTHON_BIN="python3.10"
+PYTHON_VERSION="3.10.11"
+PYTHON_PREFIX="$APP_INSTALL_DIR/python"
+PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
+
+# Paths inside the .app bundle
+APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
+APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
+DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.icns"
 
 echo "Installing $APP_NAME..."
 
+# ----------------------------
+# Install isolated Python if missing
+# ----------------------------
 install_python() {
-    echo "Attempting to install Python 3.10..."
-    if command -v brew &> /dev/null; then
-        brew install python@3.10
-    else
-        echo "Homebrew not found. Please install Python 3.10 manually:"
-        echo "https://www.python.org/downloads/release/python-310/"
-        exit 1
+    echo "Installing isolated Python $PYTHON_VERSION..."
+
+    # Ensure build tools exist
+    if ! xcode-select -p &>/dev/null; then
+        echo "Xcode Command Line Tools not found. Installing..."
+        xcode-select --install || true
     fi
+
+    mkdir -p "$APP_INSTALL_DIR/src"
+    cd "$APP_INSTALL_DIR/src"
+
+    # Download Python source
+    curl -LO https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz
+    tar -xzf Python-$PYTHON_VERSION.tgz
+    cd Python-$PYTHON_VERSION
+
+    # Build and install to isolated prefix
+    ./configure --prefix="$PYTHON_PREFIX" --enable-optimizations
+    make -j$(sysctl -n hw.ncpu)
+    make install
+
+    echo "Python installed at $PYTHON_PREFIX"
 }
 
-# Check Python
-if ! command -v $PYTHON_BIN &> /dev/null; then
+if [ ! -x "$PYTHON_BIN" ]; then
     install_python
 fi
 
-if ! command -v $PYTHON_BIN &> /dev/null; then
-    echo "Python 3.10 installation failed."
-    exit 1
-fi
+# Ensure pip exists and upgrade
+"$PYTHON_BIN" -m ensurepip --upgrade
+"$PYTHON_BIN" -m pip install --upgrade pip
 
-# Create app directories
-mkdir -p "$APP_INSTALL_DIR"
-mkdir -p "$APP_BUNDLE/Contents/MacOS"
-mkdir -p "$APP_BUNDLE/Contents/Resources"
+# ----------------------------
+# Prepare app directories
+# ----------------------------
+mkdir -p "$APP_INSTALL_DIR" "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
 
-# Copy uninstall script to install directory
-if [ -f "uninstall.sh" ]; then
-    cp uninstall.sh "$APP_INSTALL_DIR/"
-    chmod +x "$APP_INSTALL_DIR/uninstall.sh"
-else
-    echo "Warning: uninstall.sh not found."
-fi
-
-# Copy code and icon
+# Copy code and icons
 cp -r code/* "$APP_INSTALL_DIR/"
-cp icons/mac.icns "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+cp icons/mac.icns "$DESKTOP_ICON"
 
-# Create virtual environment
-cd "$APP_INSTALL_DIR"
-$PYTHON_BIN -m venv venv
-source venv/bin/activate
+# Copy uninstall script if present
+if [ -f "uninstall.command" ]; then
+    cp uninstall.command "$APP_INSTALL_DIR/"
+    chmod +x "$APP_INSTALL_DIR/uninstall.command"
+else
+    echo "Warning: uninstall.command not found."
+fi
 
-pip install --upgrade pip
-pip install -r requirements.txt
+# ----------------------------
+# Install Python dependencies
+# ----------------------------
+"$PYTHON_BIN" -m pip install -r "$APP_INSTALL_DIR/requirements.txt"
 
-# Create launcher script inside the .app bundle
-LAUNCHER="$APP_BUNDLE/Contents/MacOS/launch.sh"
+# ----------------------------
+# Create launcher script inside .app
+# ----------------------------
+LAUNCHER="$APP_MACOS_DIR/launch.command"
 cat > "$LAUNCHER" << EOF
 #!/usr/bin/env bash
-osascript -e 'tell application "Terminal" to do script "source \"$APP_INSTALL_DIR/venv/bin/activate\" && python \"$APP_INSTALL_DIR/main.py\" "'
+"$PYTHON_BIN" "$APP_INSTALL_DIR/main.py" "\$@"
 EOF
-
 chmod +x "$LAUNCHER"
 
+# ----------------------------
 # Create Info.plist
+# ----------------------------
 cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -79,7 +104,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <key>CFBundleVersion</key>
     <string>1.0</string>
     <key>CFBundleExecutable</key>
-    <string>launch.sh</string>
+    <string>launch.command</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon.icns</string>
     <key>LSUIElement</key>
@@ -90,3 +115,4 @@ EOF
 
 echo "Installation complete!"
 echo "You can now launch $APP_NAME from Applications or Finder."
+echo "To uninstall, remove '$APP_INSTALL_DIR' and '$APP_BUNDLE'."

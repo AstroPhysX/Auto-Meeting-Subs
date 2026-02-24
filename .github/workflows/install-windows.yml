@@ -19,14 +19,12 @@ jobs:
           Expand-Archive -Path "release_zips/Auto-Meeting-Subs-windows.zip" -DestinationPath "extracted"
           Get-ChildItem -Recurse extracted
 
-      # Run installer from extracted folder
-      - name: Run install.bat from extracted zip
+      - name: Run installer from extracted folder
         shell: cmd
         run: |
           cd extracted
           call install.bat
 
-      # Verify install directory
       - name: Verify install directory
         shell: pwsh
         run: |
@@ -35,17 +33,16 @@ jobs:
             Write-Error "Install directory not found!"
           }
 
-      # Verify venv
-      - name: Verify virtual environment
+      - name: Verify embedded Python exists
         shell: pwsh
         run: |
-          $VenvPath = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\venv"
-          if (!(Test-Path $VenvPath)) {
-            Write-Error "Virtual environment not created!"
+          $PythonExe = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\python\python.exe"
+          if (!(Test-Path $PythonExe)) {
+            Write-Error "Embedded Python not found!"
           }
+          & $PythonExe --version
 
-      # Verify launcher
-      - name: Verify launcher
+      - name: Verify launcher exists
         shell: pwsh
         run: |
           $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
@@ -53,5 +50,12 @@ jobs:
             Write-Error "Launcher not created!"
           }
 
+      - name: Smoke test launch
+        shell: pwsh
+        run: |
+          $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
+          & $Launcher --help 2>$null
+          Write-Host "Smoke test completed"
+
       - name: Success
-        run: echo Windows ZIP installer test passed!
+        run: echo Windows isolated installer test passed!

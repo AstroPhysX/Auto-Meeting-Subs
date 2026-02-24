@@ -33,8 +33,15 @@ jobs:
       - name: Run install script
         run: bash "$INSTALL_PATH"
 
-      - name: Verify binary created
-        run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.sh"
+      - name: Verify isolated Python exists
+        run: test -x "$HOME/.local/share/Auto-Meeting-Subs/python/bin/python3.10"
 
-      - name: Verify venv created
-        run: test -d "$HOME/.local/share/Auto-Meeting-Subs/venv"
+      - name: Verify launcher created
+        run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command"
+
+      - name: Smoke test (non-interactive)
+        run: timeout 5 "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command" || true
+
+      - name: Show installed files (debug)
+        if: failure()
+        run: ls -R "$HOME/.local/share/Auto-Meeting-Subs" || true
