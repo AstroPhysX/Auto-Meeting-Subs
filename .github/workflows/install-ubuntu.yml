@@ -1,4 +1,4 @@
-name: Test Ubuntu install
+name: Ubuntu install test
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Test Arch Linux install
+name: Arch Linux install
 
 on:
   push:

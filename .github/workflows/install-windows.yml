@@ -1,4 +1,4 @@
-name: Test Windows Install
+name: Windows Install test
 
 on:
   push:
@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
-          & $Launcher --help 2>$null
+          & $Launcher
           Write-Host "Smoke test completed"
 
       - name: Success

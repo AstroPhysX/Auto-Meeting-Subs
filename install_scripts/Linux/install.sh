@@ -64,8 +64,8 @@ fi
 mkdir -p "$INSTALL_DIR"
 
 # Copy code folder into install dir
-cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
-cp "$SCRIPT_DIR/icons/mac.icns" "$DESKTOP_ICON"
+cp -r "$SCRIPT_DIR/code/"* "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/icons/linux.png" "$DESKTOP_ICON"
 
 # Copy uninstall script to install directory
 if [ -f "../uninstall.sh" ]; then
