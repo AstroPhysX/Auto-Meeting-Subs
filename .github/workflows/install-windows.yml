@@ -1,0 +1,75 @@
+name: Test Windows Installer
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-install-windows:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ✅ Run the BAT file instead of PS1
+      - name: Build release zips
+        run: python build_release.py
+
+      # Verify zip exists
+      - name: Verify Windows zip created
+        shell: pwsh
+        run: |
+          $ZipPath = "release_zips/Auto-Meeting-Subs-windows-v1.0.zip"
+          if (!(Test-Path $ZipPath)) {
+            Write-Error "Windows ZIP not created!"
+          }
+      - name: Locate Windows zip
+        shell: pwsh
+        run: |
+          $Zip = Get-ChildItem release_zips -Filter "*windows*.zip" | Select-Object -First 1
+          if (!$Zip) { Write-Error "No Windows zip found!" }
+          echo "ZIP_NAME=$($Zip.Name)" >> $env:GITHUB_ENV
+
+      - name: Extract Windows zip
+        shell: pwsh
+        run: |
+          Expand-Archive -Path "release_zips/$env:ZIP_NAME" -DestinationPath "extracted"
+
+      # Run installer from extracted folder
+      - name: Run install.bat from extracted zip
+        shell: cmd
+        run: |
+          cd extracted
+          call install.bat
+
+      # Verify install directory
+      - name: Verify install directory
+        shell: pwsh
+        run: |
+          $InstallDir = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs"
+          if (!(Test-Path $InstallDir)) {
+            Write-Error "Install directory not found!"
+          }
+
+      # Verify venv
+      - name: Verify virtual environment
+        shell: pwsh
+        run: |
+          $VenvPath = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\venv"
+          if (!(Test-Path $VenvPath)) {
+            Write-Error "Virtual environment not created!"
+          }
+
+      # Verify launcher
+      - name: Verify launcher
+        shell: pwsh
+        run: |
+          $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
+          if (!(Test-Path $Launcher)) {
+            Write-Error "Launcher not created!"
+          }
+
+      - name: Success
+        run: echo Windows ZIP installer test passed!

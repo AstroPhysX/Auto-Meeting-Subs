@@ -45,7 +45,7 @@ fi
 
 # Copy code and icon
 cp -r code/* "$APP_INSTALL_DIR/"
-cp "$INSTALL_DIR/icons/mac.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+cp icons/mac.icns "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 
 # Create virtual environment
 cd "$APP_INSTALL_DIR"
