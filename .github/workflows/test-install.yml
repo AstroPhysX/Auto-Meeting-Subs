@@ -16,7 +16,7 @@ jobs:
 
       - name: Extract release zip
         run: |
-          unzip releases_zips/Auto-Meeting-Subs-linux-v1.0.zip -d extracted
+          unzip release_zips/Auto-Meeting-Subs-linux-v1.0.zip -d extracted
           ls -R extracted
 
       - name: Locate install.sh
