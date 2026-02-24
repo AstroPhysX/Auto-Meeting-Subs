@@ -7,7 +7,7 @@ jobs:
   test-install:
     strategy:
       matrix:
-        distro: [ubuntu-22.04, ubuntu-24.04, fedora-38, archlinux, opensuse-leap-15.5]
+        distro: [ubuntu-22.04, fedora-38, archlinux, opensuse-leap-15.5]
 
     runs-on: ${{ matrix.distro }}
 

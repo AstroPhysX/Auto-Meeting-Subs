@@ -1,0 +1,39 @@
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-install-mac:
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install unzip
+        run: brew install unzip || true
+
+      - name: Extract release zip
+        run: |
+          unzip release_zips/Auto-Meeting-Subs-mac-v1.0.zip -d extracted
+          ls -R extracted
+
+      - name: Locate install.sh
+        id: locate
+        run: |
+          INSTALL_PATH=$(find extracted -name install.sh | head -n 1)
+          echo "INSTALL_PATH=$INSTALL_PATH" >> $GITHUB_ENV
+          echo "Found installer at $INSTALL_PATH"
+
+      - name: Make installer executable
+        run: chmod +x "$INSTALL_PATH"
+
+      - name: Run install script
+        run: bash "$INSTALL_PATH"
+
+      - name: Verify binary created
+        run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.sh"
+
+      - name: Verify venv created
+        run: test -d "$HOME/.local/share/Auto-Meeting-Subs/venv"
