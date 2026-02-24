@@ -1,4 +1,4 @@
-name: Test Windows Installer
+name: Test Windows Install
 
 on:
   push:
@@ -18,11 +18,6 @@ jobs:
         run: |
           Expand-Archive -Path "release_zips/Auto-Meeting-Subs-windows-v1.0.zip" -DestinationPath "extracted"
           Get-ChildItem -Recurse extracted
-          
-      - name: Extract Windows zip
-        shell: pwsh
-        run: |
-          Expand-Archive -Path "release_zips/$env:ZIP_NAME" -DestinationPath "extracted"
 
       # Run installer from extracted folder
       - name: Run install.bat from extracted zip

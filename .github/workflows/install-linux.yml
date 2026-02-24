@@ -1,3 +1,5 @@
+name: Test linux installs
+
 on:
   push:
   pull_request:
@@ -18,7 +20,10 @@ jobs:
       - name: Install prerequisites on host
         run: |
           sudo apt-get update
-          sudo apt-get install -y unzip docker.io
+          sudo apt-get install -y unzip
+      
+      - name: Verify Docker
+        run: docker --version
 
       - name: Extract release zip (host)
         if: matrix.distro == 'ubuntu-22.04'
