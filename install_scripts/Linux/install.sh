@@ -9,6 +9,7 @@ DESKTOP_FILE="$HOME/.local/share/applications/$APP_ID.desktop"
 PYTHON_VERSION="3.10.11"
 PYTHON_PREFIX="$INSTALL_DIR/python"
 PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "Installing $APP_NAME..."
 
@@ -63,8 +64,8 @@ fi
 mkdir -p "$INSTALL_DIR"
 
 # Copy code folder into install dir
-cp -r code/* "$INSTALL_DIR/"
-cp -r icons/* "$INSTALL_DIR/"
+cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
+cp "$SCRIPT_DIR/icons/mac.icns" "$DESKTOP_ICON"
 
 # Copy uninstall script to install directory
 if [ -f "../uninstall.sh" ]; then

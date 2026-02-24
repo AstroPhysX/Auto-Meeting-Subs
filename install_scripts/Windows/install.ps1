@@ -77,11 +77,19 @@ Write-Host "Installing dependencies..."
 # ----------------------------
 # Create Launcher (direct execution)
 # ----------------------------
-$Launcher = "$InstallDir\launch.ps1"
+$Launcher = Join-Path $InstallDir "launch.ps1"
 
-@"
-& '$PythonExe' '$InstallDir\main.py' `$args
-"@ | Set-Content $Launcher
+$LauncherContent = @"
+`"$PythonExe`" `"$InstallDir\main.py`" `$args
+"@
+
+# Use -Encoding UTF8 explicitly
+Set-Content -Path $Launcher -Value $LauncherContent -Encoding UTF8 -Force
+
+# Ensure the file exists and is executable
+if (!(Test-Path $Launcher)) {
+    Write-Error "Failed to create launcher!"
+}
 
 # ----------------------------
 # Create Start Menu Shortcut

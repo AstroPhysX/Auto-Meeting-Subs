@@ -11,6 +11,7 @@ APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
 PYTHON_VERSION="3.10.11"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
 PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Paths inside the .app bundle
 APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
@@ -61,16 +62,13 @@ fi
 mkdir -p "$APP_INSTALL_DIR" "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
 
 # Copy code and icons
-cp -r code/* "$APP_INSTALL_DIR/"
-cp icons/mac.icns "$DESKTOP_ICON"
-
-# Copy uninstall script if present
-if [ -f "uninstall.command" ]; then
-    cp uninstall.command "$APP_INSTALL_DIR/"
+cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
+cp "$SCRIPT_DIR/icons/mac.icns" "$DESKTOP_ICON"
+if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
+    cp "$SCRIPT_DIR/uninstall.command" "$APP_INSTALL_DIR/"
     chmod +x "$APP_INSTALL_DIR/uninstall.command"
-else
-    echo "Warning: uninstall.command not found."
 fi
+
 
 # ----------------------------
 # Install Python dependencies
