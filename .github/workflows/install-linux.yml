@@ -1,0 +1,64 @@
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-install:
+    strategy:
+      matrix:
+        distro: [ubuntu-22.04, ubuntu-24.04, fedora-38, archlinux, opensuse-leap-15.5]
+
+    runs-on: ${{ matrix.distro }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install unzip
+        run: |
+          # Fedora
+          if command -v dnf &>/dev/null; then
+            sudo dnf install -y unzip
+          # Arch
+          elif command -v pacman &>/dev/null; then
+            sudo pacman -Sy --noconfirm unzip
+          # openSUSE
+          elif command -v zypper &>/dev/null; then
+            sudo zypper install -y unzip
+          # Ubuntu/Debian
+          elif command -v apt &>/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y unzip
+          fi
+
+      - name: Extract release zip
+        run: |
+          unzip release_zips/Auto-Meeting-Subs-linux-v1.0.zip -d extracted
+          ls -R extracted
+
+      - name: Locate install.sh
+        id: locate
+        run: |
+          INSTALL_PATH=$(find extracted -name install.sh | head -n 1)
+          echo "INSTALL_PATH=$INSTALL_PATH" >> $GITHUB_ENV
+          echo "Found installer at $INSTALL_PATH"
+
+      - name: Make installer executable
+        run: chmod +x "$INSTALL_PATH"
+
+      - name: Run install script
+        run: bash "$INSTALL_PATH"
+
+      - name: Verify binary created
+        run: test -f "$HOME/.local/bin/auto-meeting-subs"
+
+      - name: Verify venv created
+        run: test -d "$HOME/.local/share/auto-meeting-subs/venv"
+
+      - name: Test app launch (non-interactive smoke test)
+        run: timeout 5 "$HOME/.local/bin/auto-meeting-subs" || true
+
+      - name: Show installed files (debug)
+        if: failure()
+        run: ls -R "$HOME/.local/share/auto-meeting-subs" || true

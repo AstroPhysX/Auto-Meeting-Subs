@@ -6,7 +6,7 @@ APP_ID="auto-meeting-subs"
 INSTALL_DIR="$HOME/.local/share/$APP_ID"
 BIN_DIR="$HOME/.local/bin"
 DESKTOP_FILE="$HOME/.local/share/applications/$APP_ID.desktop"
-PYTHON_BIN="python3.10"
+PYTHON_BIN=$(command -v python3.10 || command -v python3 || true)
 
 echo "Installing $APP_NAME..."
 
@@ -23,6 +23,12 @@ install_python() {
     elif command -v pacman &> /dev/null; then
         sudo pacman -Sy --noconfirm python310
 
+    elif command -v zypper &> /dev/null; then
+        sudo zypper install -y python310 
+
+    elif command -v apk &> /dev/null; then
+        sudo apk add --no-cache python3=3.10*
+
     else
         echo "Unsupported distribution."
         echo "Please install Python 3.10 manually."
@@ -30,13 +36,20 @@ install_python() {
     fi
 }
 # Check Python
-if ! command -v $PYTHON_BIN &> /dev/null; then
-    install_python
-fi
+PY_VER=$($PYTHON_BIN -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || echo "0.0.0")
 
-if ! command -v $PYTHON_BIN &> /dev/null; then
-    echo "Python 3.10 installation failed."
-    exit 1
+if [[ "$PY_VER" != 3.10* ]]; then
+    echo "Python 3.10 not found. Installing..."
+    install_python
+
+    # Recheck after installation
+    PYTHON_BIN=$(command -v python3.10 || command -v python3 || true)
+    PY_VER=$($PYTHON_BIN -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || echo "0.0.0")
+
+    if [[ "$PY_VER" != 3.10* ]]; then
+        echo "Python 3.10 installation failed."
+        exit 1
+    fi
 fi
 
 # Create install directory
@@ -55,6 +68,8 @@ else
 fi
 
 cd "$INSTALL_DIR"
+# Ensure directories exist
+mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$HOME/.local/share/applications"
 
 # Create virtual environment
 $PYTHON_BIN -m venv venv
@@ -87,7 +102,7 @@ EOF
 
 # Refresh desktop database so it appears in menus immediately
 if command -v update-desktop-database &> /dev/null; then
-    update-desktop-database ~/.local/share/applications
+    update-desktop-database ~/.local/share/applications || true
 fi
 
 echo "Installation complete!"
