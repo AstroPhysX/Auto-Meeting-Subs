@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import shutil
 import os
+import stat
 from pathlib import Path
 
 # ----------------------
@@ -25,7 +26,8 @@ PLATFORMS = {
     },
     "windows": {
         "folder_name": "Windows",
-        "installers": ["install.ps1", "uninstall.ps1"],
+        "bat_files": ["install.bat", "uninstall.bat"],
+        "ps1_files": ["install.ps1", "uninstall.ps1"],
         "zip_name": f"Auto-Meeting-Subs-windows-v{VERSION}.zip"
     }
 }
@@ -42,15 +44,37 @@ def build_zip(platform, config):
         shutil.rmtree(temp_dir)
     temp_dir.mkdir()
 
-    # Copy installers
     platform_dir = REPO_ROOT / "install_scripts" / config["folder_name"]
-    for installer in config["installers"]:
-        shutil.copy(platform_dir / installer, temp_dir)
+
+    if platform == "windows":
+        # Copy .bat files to root of zip
+        for bat in config["bat_files"]:
+            shutil.copy(platform_dir / bat, temp_dir / bat)
+
+        # Create scripts folder
+        scripts_dir = temp_dir / "scripts"
+        scripts_dir.mkdir()
+
+        # Copy .ps1 files into scripts/
+        for ps1 in config["ps1_files"]:
+            shutil.copy(platform_dir / ps1, scripts_dir / ps1)
+
+    else:
+        # Linux & Mac installers
+        for installer in config["installers"]:
+            src = platform_dir / installer
+            dst = temp_dir / installer
+            shutil.copy(src, dst)
+
+            # Make executable for Linux and Mac
+            current_mode = dst.stat().st_mode
+            dst.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     # Copy code folder
     shutil.copytree(CODE_DIR, temp_dir / "code")
 
-    shutil.copytree(ICON_DIR, temp_dir/ "icons")
+    # Copy icons folder
+    shutil.copytree(ICON_DIR, temp_dir / "icons")
 
     # Create zip
     zip_path = RELEASE_DIR / config["zip_name"]
@@ -58,11 +82,9 @@ def build_zip(platform, config):
         zip_path.unlink()
     shutil.make_archive(str(zip_path).replace(".zip",""), 'zip', temp_dir)
 
-    # Clean up temp dir
     shutil.rmtree(temp_dir)
 
     print(f"[+] {platform} zip created: {zip_path}")
-
 # ----------------------
 # Main
 # ----------------------

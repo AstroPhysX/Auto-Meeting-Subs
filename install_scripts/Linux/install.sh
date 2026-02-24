@@ -46,6 +46,14 @@ mkdir -p "$INSTALL_DIR"
 cp -r code/* "$INSTALL_DIR/"
 cp -r icons/* "$INSTALL_DIR/"
 
+# Copy uninstall script to install directory
+if [ -f "../uninstall.sh" ]; then
+    cp ../uninstall.sh "$INSTALL_DIR/"
+    chmod +x "$INSTALL_DIR/uninstall.sh"
+else
+    echo "Warning: uninstall.sh not found in install_scripts folder."
+fi
+
 cd "$INSTALL_DIR"
 
 # Create virtual environment

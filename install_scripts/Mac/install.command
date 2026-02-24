@@ -35,6 +35,14 @@ mkdir -p "$APP_INSTALL_DIR"
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
 
+# Copy uninstall script to install directory
+if [ -f "uninstall.sh" ]; then
+    cp uninstall.sh "$APP_INSTALL_DIR/"
+    chmod +x "$APP_INSTALL_DIR/uninstall.sh"
+else
+    echo "Warning: uninstall.sh not found."
+fi
+
 # Copy code and icon
 cp -r code/* "$APP_INSTALL_DIR/"
 cp "$INSTALL_DIR/icons/mac.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"

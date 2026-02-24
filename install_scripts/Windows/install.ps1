@@ -48,6 +48,27 @@ Copy-Item -Recurse -Force -Path ".\code\*" -Destination $InstallDir
 # Copy icons folder into install dir
 Copy-Item -Recurse -Force -Path ".\icons\*" -Destination "$InstallDir\icons"
 
+# --- Copy uninstall scripts ---
+$UninstallPs1Source = Join-Path $PSScriptRoot "uninstall.ps1"
+$UninstallPs1Dest   = Join-Path $InstallDir "uninstall.ps1"
+
+$UninstallBatSource = Join-Path $PSScriptRoot "..\uninstall.bat"  # adjust path if needed
+$UninstallBatDest   = Join-Path $InstallDir "uninstall.bat"
+
+if (Test-Path $UninstallPs1Source) {
+    Copy-Item -Path $UninstallPs1Source -Destination $UninstallPs1Dest -Force
+    Write-Host "Uninstall.ps1 copied to $InstallDir"
+} else {
+    Write-Warning "uninstall.ps1 not found in installer directory!"
+}
+
+if (Test-Path $UninstallBatSource) {
+    Copy-Item -Path $UninstallBatSource -Destination $UninstallBatDest -Force
+    Write-Host "Uninstall.bat copied to $InstallDir"
+} else {
+    Write-Warning "uninstall.bat not found in installer directory!"
+}
+
 # Create virtual environment
 Set-Location $InstallDir
 & python3.10 -m venv venv
