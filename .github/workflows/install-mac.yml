@@ -19,10 +19,10 @@ jobs:
           unzip release_zips/Auto-Meeting-Subs-mac-v1.0.zip -d extracted
           ls -R extracted
 
-      - name: Locate install.sh
+      - name: Locate install.command
         id: locate
         run: |
-          INSTALL_PATH=$(find extracted -name install.sh | head -n 1)
+          INSTALL_PATH=$(find extracted -name install.command | head -n 1)
           echo "INSTALL_PATH=$INSTALL_PATH" >> $GITHUB_ENV
           echo "Found installer at $INSTALL_PATH"
 

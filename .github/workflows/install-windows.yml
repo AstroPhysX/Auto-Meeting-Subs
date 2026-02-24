@@ -13,25 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ Run the BAT file instead of PS1
-      - name: Build release zips
-        run: python build_release.py
-
-      # Verify zip exists
-      - name: Verify Windows zip created
+      - name: Extract release zip
         shell: pwsh
         run: |
-          $ZipPath = "release_zips/Auto-Meeting-Subs-windows-v1.0.zip"
-          if (!(Test-Path $ZipPath)) {
-            Write-Error "Windows ZIP not created!"
-          }
-      - name: Locate Windows zip
-        shell: pwsh
-        run: |
-          $Zip = Get-ChildItem release_zips -Filter "*windows*.zip" | Select-Object -First 1
-          if (!$Zip) { Write-Error "No Windows zip found!" }
-          echo "ZIP_NAME=$($Zip.Name)" >> $env:GITHUB_ENV
-
+          Expand-Archive -Path "release_zips/Auto-Meeting-Subs-windows-v1.0.zip" -DestinationPath "extracted"
+          Get-ChildItem -Recurse extracted
+          
       - name: Extract Windows zip
         shell: pwsh
         run: |
