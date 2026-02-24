@@ -39,8 +39,16 @@ jobs:
       - name: Verify launcher created
         run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command"
 
-      - name: Smoke test (non-interactive)
-        run: timeout 5 "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command" || true
+      - name: Smoke test launch
+        shell: bash
+        run: |
+          LAUNCHER="$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command"
+          echo "Running launcher: $LAUNCHER"
+
+          # Run the launcher non-interactively with a timeout
+          timeout 5 "$LAUNCHER" || true
+
+          echo "Smoke test completed"
 
       - name: Show installed files (debug)
         if: failure()
