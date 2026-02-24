@@ -7,7 +7,6 @@ from pathlib import Path
 # ----------------------
 # Configuration
 # ----------------------
-VERSION = "1.0"  # Update this for each release
 REPO_ROOT = Path(__file__).parent.resolve()
 
 CODE_DIR = REPO_ROOT / "code"
@@ -17,18 +16,18 @@ PLATFORMS = {
     "linux": {
         "folder_name": "Linux",
         "installers": ["install.sh", "uninstall.sh"],
-        "zip_name": f"Auto-Meeting-Subs-linux-v{VERSION}.zip"
+        "zip_name": f"Auto-Meeting-Subs-linux.zip"
     },
     "mac": {
         "folder_name": "Mac",
         "installers": ["install.command", "uninstall.command"],
-        "zip_name": f"Auto-Meeting-Subs-mac-v{VERSION}.zip"
+        "zip_name": f"Auto-Meeting-Subs-mac.zip"
     },
     "windows": {
         "folder_name": "Windows",
         "bat_files": ["install.bat", "uninstall.bat"],
         "ps1_files": ["install.ps1", "uninstall.ps1"],
-        "zip_name": f"Auto-Meeting-Subs-windows-v{VERSION}.zip"
+        "zip_name": f"Auto-Meeting-Subs-windows.zip"
     }
 }
 

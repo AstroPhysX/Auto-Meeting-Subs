@@ -1,0 +1,53 @@
+name: Test Ubuntu install
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-install:
+    runs-on: ubuntu-22.04  # Stable LTS with apt + python3.10 available
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Extract release zip
+        run: |
+          unzip release_zips/Auto-Meeting-Subs-linux-v1.0.zip -d extracted
+          ls -R extracted
+
+      - name: Locate install.sh
+        id: locate
+        run: |
+          INSTALL_PATH=$(find extracted -name install.sh | head -n 1)
+          echo "INSTALL_PATH=$INSTALL_PATH" >> $GITHUB_ENV
+          echo "Found installer at $INSTALL_PATH"
+
+      - name: Make installer executable
+        run: chmod +x "$INSTALL_PATH"
+
+      - name: Run install script
+        run: |
+          bash "$INSTALL_PATH"
+
+      - name: Verify binary created
+        run: |
+          test -f "$HOME/.local/bin/auto-meeting-subs"
+
+      - name: Verify venv created
+        run: |
+          test -d "$HOME/.local/share/auto-meeting-subs/venv"
+
+      - name: Test app launch (non-interactive smoke test)
+        run: |
+          timeout 5 "$HOME/.local/bin/auto-meeting-subs" || true
+
+      - name: Show installed files (debug)
+        if: failure()
+        run: |
+          ls -R "$HOME/.local/share/auto-meeting-subs" || true

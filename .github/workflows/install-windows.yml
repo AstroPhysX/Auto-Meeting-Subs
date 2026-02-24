@@ -16,7 +16,7 @@ jobs:
       - name: Extract release zip
         shell: pwsh
         run: |
-          Expand-Archive -Path "release_zips/Auto-Meeting-Subs-windows-v1.0.zip" -DestinationPath "extracted"
+          Expand-Archive -Path "release_zips/Auto-Meeting-Subs-windows.zip" -DestinationPath "extracted"
           Get-ChildItem -Recurse extracted
 
       # Run installer from extracted folder

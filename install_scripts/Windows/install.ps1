@@ -7,39 +7,47 @@ $AppName = "Auto-Meeting-Subs"
 $AppID = "Auto-Meeting-Subs"
 $UserProfile = [Environment]::GetFolderPath("UserProfile")
 $InstallDir = "$UserProfile\AppData\Local\$AppID"
-$PythonVersion = "3.10"
-$PythonExe = "python3.10.exe"
-$PythonInstallUrl = "https://www.python.org/ftp/python/3.10.15/python-3.10.15-amd64.exe"
 $StartMenuDir = "$UserProfile\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\$AppID"
 $IconPath = "$InstallDir\icons\windows.ico"
 
+# Python settings
+$PythonVersion = "3.10.11"
+$PythonEmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip"
+$PythonDir = "$InstallDir\python"
+$PythonExe = "$PythonDir\python.exe"
+
 Write-Host "Installing $AppName..."
 
-# Function: Install Python 3.10 if missing
+# ----------------------------
+# Function: Install Python via embeddable ZIP
+# ----------------------------
 function Install-Python {
-    Write-Host "Python 3.10 not found. Downloading and installing..."
-    $Installer = "$env:TEMP\python-3.10.15-amd64.exe"
-    Invoke-WebRequest $PythonInstallUrl -OutFile $Installer
-    Start-Process -FilePath $Installer -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1" -Wait
-    Remove-Item $Installer
+    Write-Host "Python 3.10 not found. Downloading embeddable zip..."
+    $TempZip = "$env:TEMP\python-$PythonVersion-embed-amd64.zip"
+    Invoke-WebRequest $PythonEmbedUrl -OutFile $TempZip
+    Expand-Archive -Path $TempZip -DestinationPath $PythonDir
+    Remove-Item $TempZip
+    Write-Host "Python 3.10 extracted to $PythonDir"
 }
 
-# Check Python
-try {
-    $python = & python3.10 --version
-} catch {
+# ----------------------------
+# Check if Python exists
+# ----------------------------
+if (!(Test-Path $PythonExe)) {
     Install-Python
 }
 
-# Verify Python installed
+# Verify Python works
 try {
-    & python3.10 --version
+    & $PythonExe --version
 } catch {
-    Write-Host "Python 3.10 installation failed. Please install manually from https://www.python.org/downloads/release/python-310/"
+    Write-Host "Python installation failed. Please install manually."
     exit 1
 }
 
-# Create install directory
+# ----------------------------
+# Prepare installation directory
+# ----------------------------
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
 # Copy code folder into install dir
@@ -48,38 +56,33 @@ Copy-Item -Recurse -Force -Path ".\code\*" -Destination $InstallDir
 # Copy icons folder into install dir
 Copy-Item -Recurse -Force -Path ".\icons\*" -Destination "$InstallDir\icons"
 
-# --- Copy uninstall scripts ---
+# ----------------------------
+# Copy uninstall scripts
+# ----------------------------
 $UninstallPs1Source = Join-Path $PSScriptRoot "uninstall.ps1"
 $UninstallPs1Dest   = Join-Path $InstallDir "uninstall.ps1"
 
-$UninstallBatSource = Join-Path $PSScriptRoot "..\uninstall.bat"  # adjust path if needed
+$UninstallBatSource = Join-Path $PSScriptRoot "..\uninstall.bat"
 $UninstallBatDest   = Join-Path $InstallDir "uninstall.bat"
 
-if (Test-Path $UninstallPs1Source) {
-    Copy-Item -Path $UninstallPs1Source -Destination $UninstallPs1Dest -Force
-    Write-Host "Uninstall.ps1 copied to $InstallDir"
-} else {
-    Write-Warning "uninstall.ps1 not found in installer directory!"
-}
+if (Test-Path $UninstallPs1Source) { Copy-Item $UninstallPs1Source -Destination $UninstallPs1Dest -Force }
+if (Test-Path $UninstallBatSource) { Copy-Item $UninstallBatSource -Destination $UninstallBatDest -Force }
 
-if (Test-Path $UninstallBatSource) {
-    Copy-Item -Path $UninstallBatSource -Destination $UninstallBatDest -Force
-    Write-Host "Uninstall.bat copied to $InstallDir"
-} else {
-    Write-Warning "uninstall.bat not found in installer directory!"
-}
-
+# ----------------------------
 # Create virtual environment
+# ----------------------------
 Set-Location $InstallDir
-& python3.10 -m venv venv
+& $PythonExe -m venv venv
 
-# Activate venv and install requirements
-$VenvActivate = "$InstallDir\venv\Scripts\Activate.ps1"
-& $VenvActivate
-pip install --upgrade pip
-pip install -r "$InstallDir\requirements.txt"
+# Upgrade pip and install requirements
+$VenvPython = "$InstallDir\venv\Scripts\python.exe"
+$VenvPip = "$InstallDir\venv\Scripts\pip.exe"
+& $VenvPip install --upgrade pip
+& $VenvPip install -r "$InstallDir\requirements.txt"
 
-# Create launcher script in install dir
+# ----------------------------
+# Create launcher script
+# ----------------------------
 $Launcher = "$InstallDir\launch.ps1"
 @"
 `$Venv = '$InstallDir\venv\Scripts\Activate.ps1'
@@ -87,10 +90,10 @@ $Launcher = "$InstallDir\launch.ps1"
 python '$InstallDir\main.py' `$args
 "@ | Set-Content $Launcher
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-# Make launcher executable
-# Users can double-click this launcher to run
 
+# ----------------------------
 # Create Start Menu shortcut
+# ----------------------------
 New-Item -ItemType Directory -Force -Path $StartMenuDir | Out-Null
 $Shortcut = "$StartMenuDir\$AppName.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell

@@ -17,7 +17,7 @@ jobs:
 
       - name: Extract release zip
         run: |
-          unzip release_zips/Auto-Meeting-Subs-mac-v1.0.zip -d extracted
+          unzip release_zips/Auto-Meeting-Subs-mac.zip -d extracted
           ls -R extracted
 
       - name: Locate install.command
