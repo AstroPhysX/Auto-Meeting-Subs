@@ -24,9 +24,7 @@ install_python() {
             libbz2-dev libreadline-dev wget curl
 
     elif command -v dnf &> /dev/null; then
-        sudo dnf groupinstall -y "Development Tools"
-        sudo dnf install -y openssl-devel bzip2-devel libffi-devel \
-            zlib-devel readline-devel sqlite-devel wget
+        sudo dnf install -y gcc make bzip2 bzip2-devel zlib-devel libffi-devel readline-devel sqlite-devel wget xz-devel
 
     elif command -v pacman &> /dev/null; then
         sudo pacman -Sy --noconfirm base-devel openssl zlib \
@@ -66,14 +64,7 @@ mkdir -p "$INSTALL_DIR"
 # Copy code folder into install dir
 cp -r "$SCRIPT_DIR/code/"* "$INSTALL_DIR/"
 cp -r "$SCRIPT_DIR/icons/" "$INSTALL_DIR/"
-
-# Copy uninstall script to install directory
-if [ -f "../uninstall.sh" ]; then
-    cp ../uninstall.sh "$INSTALL_DIR/"
-    chmod +x "$INSTALL_DIR/uninstall.sh"
-else
-    echo "Warning: uninstall.sh not found in install_scripts folder."
-fi
+cp "$SCRIPT_DIR/uninstall.sh" "$INSTALL_DIR/"
 
 cd "$INSTALL_DIR"
 # Ensure directories exist

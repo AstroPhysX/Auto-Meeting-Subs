@@ -5,7 +5,7 @@ set -e
 # Configuration
 # ----------------------------
 APP_NAME="Auto-Meeting-Subs"
-APP_ID="Auto-Meeting-Subs"
+APP_ID="auto-meeting-subs"
 APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
 APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
 PYTHON_VERSION="3.10.11"

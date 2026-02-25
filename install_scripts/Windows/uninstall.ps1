@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 
 $AppName = "Auto-Meeting-Subs"
-$AppID = "Auto-Meeting-Subs"
+$AppID = "auto-meeting-subs"
 $UserProfile = [Environment]::GetFolderPath("UserProfile")
 $InstallDir = "$UserProfile\AppData\Local\$AppID"
 $StartMenuDir = "$UserProfile\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\$AppID"

@@ -14,7 +14,7 @@ def setup_app_environment():
     else:
         base_dir = Path.home() / ".local" / "share"
 
-    appdata_dir = base_dir / "Auto-Meeting-Subs"
+    appdata_dir = base_dir / "auto-meeting-subs"
     appdata_dir.mkdir(parents=True, exist_ok=True)
 
     # Create subfolders
