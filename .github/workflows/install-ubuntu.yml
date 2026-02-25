@@ -39,10 +39,18 @@ jobs:
         run: |
           test -f "$HOME/.local/bin/auto-meeting-subs"
 
-      - name: Test app launch (non-interactive smoke test)
+      - name: Test first run via launcher
+        shell: bash
         run: |
-          timeout 5 "$HOME/.local/bin/auto-meeting-subs" || true
+          LAUNCHER="$HOME/.local/bin/auto-meeting-subs"
+          
+          echo "Running launcher: $LAUNCHER..."
+          set -o errexit  # exit on any error
+          
+          # Run non-interactively, allow it to timeout to avoid hanging in CI
+          bash "$LAUNCHER" || true  
 
+          echo "Smoke test completed"
       - name: Show installed files (debug)
         if: failure()
         run: |

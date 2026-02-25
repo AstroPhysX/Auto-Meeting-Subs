@@ -81,6 +81,19 @@ Change the very last line where it says `developer_debug = n` to `developer_debu
 ![developer_debug](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/62c9fe9c-5edc-41c7-937a-acc2fec903f3)
 
 Now when you run the program you will see all the errors that may occur when running ffmpeg, Whisperx or even handbrake.
+# Upcoming feature/changes
+- [x] Implement Whisperx directly into the code without needing to use CLI version
+    - [x] use num_speakers in the diarize.py file instead of the min and max speakers since speaker-diarization-3.1 does not work well with those arguments
+- [x] Allow user to input any video or audio file type
+- [ ] Fix date issue if date is already in the name of the file and does not correspond with the date of the file
+- [x] implement a way to disable compression of video if requested (done via config.ini)
+- [x] Updated to newer whisperx version
+- [x] Include local Summarizer for meetings
+- [x] Make cross platform compatible
+- [ ] Make Graphical User Interface for application
+    - [ ] Single processing
+    - [ ] Batch processing
+- [ ] User inputs transcript in any format skips to Summarizer automatically
 # Uninstalling Everything
 ### Linux
 1. Navigate to ```"$HOME/.local/share/auto-meeting-subs``` either via file manager (may require enabling seeing hidden files) or console
