@@ -22,7 +22,8 @@ You will need to generate a Hugging Face access token that you can generate here
 ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/e32daa8e-594e-406b-b2fc-f2b073a35cf7)
 
 ## Installing Auto-Meeting-Subs
-Start by downloading Auto-Meeting-Subs.zip for your operating system from [here](https://github.com/AstroPhysX/Auto-Meeting-Subs/releases). See picture on where to click to download. ![image](https://github.com/AstroPhysX/Auto-Meeting-Subs/assets/67988361/d3d48cfe-ba05-48cc-976a-85a28ea58f1d) <br /><br />
+Start by downloading Auto-Meeting-Subs.zip for your operating system from [here](https://github.com/AstroPhysX/Auto-Meeting-Subs/releases). See picture on where to click to download. <img width="1621" height="1269" alt="image" src="https://github.com/user-attachments/assets/f450ff47-0424-4010-a0e3-9221148367c5" />
+ <br /><br />
 
 ### Linux
 Now unzip the file and save the unzipped folder in a safe place. 
