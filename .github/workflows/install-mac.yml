@@ -50,6 +50,18 @@ jobs:
 
           echo "Smoke test completed"
 
+      - name: Test Python first run
+        shell: bash
+        run: |
+          PYTHON="$HOME/.local/share/Auto-Meeting-Subs/python/bin/python3.10"
+          MAIN="$HOME/.local/share/Auto-Meeting-Subs/main.py"
+
+          echo "Running main.py using isolated Python..."
+          set -o errexit
+          "$PYTHON" "$MAIN" || true
+
+          echo "Smoke test completed"
+          
       - name: Show installed files (debug)
         if: failure()
         run: ls -R "$HOME/.local/share/Auto-Meeting-Subs" || true

@@ -65,7 +65,7 @@ mkdir -p "$INSTALL_DIR"
 
 # Copy code folder into install dir
 cp -r "$SCRIPT_DIR/code/"* "$INSTALL_DIR/"
-cp "$SCRIPT_DIR/icons/linux.png" "$INSTALL_DIR/icons/"
+cp -r "$SCRIPT_DIR/icons/" "$INSTALL_DIR/"
 
 # Copy uninstall script to install directory
 if [ -f "../uninstall.sh" ]; then
