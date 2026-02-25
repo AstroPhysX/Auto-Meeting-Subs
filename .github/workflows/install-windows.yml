@@ -49,13 +49,55 @@ jobs:
           if (!(Test-Path $Launcher)) {
             Write-Error "Launcher not created!"
           }
-          
-      - name: Smoke test launch
+
+      - name: Smoke test launch (stop at Ollama download)
         shell: pwsh
         run: |
           $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
-          & $Launcher
-          Write-Host "Smoke test completed"
+
+          if (!(Test-Path $Launcher)) {
+              Write-Error "Launcher not found!"
+          }
+
+          Write-Host "Starting launcher smoke test..."
+
+          $process = Start-Process `
+              -FilePath "powershell.exe" `
+              -ArgumentList "-ExecutionPolicy Bypass -File `"$Launcher`"" `
+              -NoNewWindow `
+              -RedirectStandardOutput "stdout.txt" `
+              -RedirectStandardError "stderr.txt" `
+              -PassThru
+
+          while (-not $process.HasExited) {
+
+              Start-Sleep -Milliseconds 500
+
+              if (Test-Path "stderr.txt") {
+                  $stderr = Get-Content "stderr.txt" -Raw
+                  if ($stderr -match "ModuleNotFoundError") {
+                      Stop-Process -Id $process.Id -Force
+                      Write-Error "Import error detected:`n$stderr"
+                  }
+              }
+
+              if (Test-Path "stdout.txt") {
+                  $stdout = Get-Content "stdout.txt" -Raw
+                  if ($stdout -match "Downloading Ollama for Windows") {
+                      Write-Host "Ollama download detected — stopping intentionally."
+                      Stop-Process -Id $process.Id -Force
+                      exit 0
+                  }
+              }
+          }
+
+          # If process exited on its own, check exit code
+          if ($process.ExitCode -ne 0) {
+              $stderr = Get-Content "stderr.txt" -Raw
+              Write-Error "Launcher exited unexpectedly:`n$stderr"
+          }
+
+          Write-Host "Smoke test completed successfully."
 
       - name: Success
         run: echo Windows isolated installer test passed!
