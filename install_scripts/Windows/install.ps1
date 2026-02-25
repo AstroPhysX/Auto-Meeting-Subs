@@ -80,14 +80,11 @@ Write-Host "Installing dependencies..."
 $Launcher = Join-Path $InstallDir "launch.ps1"
 
 $LauncherContent = @"
-# Expand InstallDir
-\$InstallDir = '$InstallDir'
-
 # Ensure Python sees the install directory for imports
-\$env:PYTHONPATH = \$InstallDir
+`$env:PYTHONPATH = '$InstallDir'
 
 # Set working directory to install dir
-Set-Location \$InstallDir
+Set-Location '$InstallDir'
 
 # Run main.py
 & '$PythonExe' 'main.py'
