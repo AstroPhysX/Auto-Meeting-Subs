@@ -43,8 +43,18 @@ if (!(Test-Path $PythonExe)) {
 
     # Enable site-packages (required)
     $PthFile = Get-ChildItem "$PythonDir\python310._pth"
-    (Get-Content $PthFile.FullName) -replace "#import site", "import site" |
-        Set-Content $PthFile.FullName
+
+    $PthContent = Get-Content $PthFile.FullName
+
+    # Enable site
+    $PthContent = $PthContent -replace "#import site", "import site"
+
+    # Add application root to sys.path (VERY IMPORTANT)
+    if ($PthContent -notcontains "..") {
+        $PthContent += ".."
+    }
+
+    Set-Content $PthFile.FullName $PthContent
 }
 
 # ----------------------------
@@ -80,19 +90,8 @@ Write-Host "Installing dependencies..."
 $Launcher = Join-Path $InstallDir "launch.ps1"
 
 $LauncherContent = @"
-# Set working directory
 Set-Location '$InstallDir'
-
-# Prepend install dir to sys.path
-\$code = @'
-import sys
-import os
-sys.path.insert(0, os.getcwd())
-'@
-[System.IO.File]::WriteAllText('$InstallDir\__init_setup.py', \$code)
-
-# Run main.py with injected sys.path fix
-& '$PythonExe' '-i' '-c' "exec(open(r'$InstallDir\__init_setup.py').read()); exec(open(r'$InstallDir\main.py').read())"
+& '$PythonExe' 'main.py'
 "@
 
 # Use -Encoding UTF8 explicitly
