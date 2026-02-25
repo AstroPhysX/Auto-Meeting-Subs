@@ -80,14 +80,19 @@ Write-Host "Installing dependencies..."
 $Launcher = Join-Path $InstallDir "launch.ps1"
 
 $LauncherContent = @"
-# Ensure Python sees the install directory for imports
-`$env:PYTHONPATH = '$InstallDir'
-
-# Set working directory to install dir
+# Set working directory
 Set-Location '$InstallDir'
 
-# Run main.py
-& '$PythonExe' 'main.py'
+# Prepend install dir to sys.path
+\$code = @'
+import sys
+import os
+sys.path.insert(0, os.getcwd())
+'@
+[System.IO.File]::WriteAllText('$InstallDir\__init_setup.py', \$code)
+
+# Run main.py with injected sys.path fix
+& '$PythonExe' '-i' '-c' "exec(open(r'$InstallDir\__init_setup.py').read()); exec(open(r'$InstallDir\main.py').read())"
 "@
 
 # Use -Encoding UTF8 explicitly
