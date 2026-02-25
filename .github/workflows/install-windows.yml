@@ -49,22 +49,6 @@ jobs:
           if (!(Test-Path $Launcher)) {
             Write-Error "Launcher not created!"
           }
-      - name: Smoke test launch
-        shell: pwsh
-        run: |
-          $PythonExe = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\python\python.exe"
-          $MainPy    = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\main.py"
-
-          if (!(Test-Path $PythonExe)) { Write-Error "Embedded Python not found!" }
-          if (!(Test-Path $MainPy)) { Write-Error "main.py not found!" }
-
-          # Change to install directory so imports work
-          Set-Location "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs"
-
-          # Run main.py directly with embedded Python
-          & $PythonExe ".\main.py"
-
-          Write-Host "Smoke test completed"
           
       - name: Smoke test launch
         shell: pwsh

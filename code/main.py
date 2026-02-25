@@ -4,7 +4,6 @@ from file_utils import setup_app_environment, audio_or_video, get_creation_date
 APPDATA_DIR = setup_app_environment()
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pyannote.audio")
-import os
 import time
 import shutil
 from pathlib import Path
