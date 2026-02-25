@@ -14,4 +14,4 @@ testfile.py
 auto-meeting-subs-env/
 mlenv/
 testenv/
-__pycache__/
+**/__pycache__/

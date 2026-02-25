@@ -28,4 +28,4 @@ if (Test-Path $StartMenuDir) {
 }
 
 Write-Host "Uninstallation complete!"
-Write-Host "This did not uninstall python3.10 or ollama as other app might depend on them"
+Write-Host "This did not uninstall ollama as other app might depend on them"

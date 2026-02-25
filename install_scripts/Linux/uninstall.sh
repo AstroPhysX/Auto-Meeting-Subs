@@ -13,4 +13,4 @@ if command -v update-desktop-database &> /dev/null; then
 fi
 
 echo "Uninstalled successfully."
-echo "This did not uninstall python3.10 or ollama as other app might depend on them"
+echo "This did not uninstall ollama as other app might depend on them"

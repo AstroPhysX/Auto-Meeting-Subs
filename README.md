@@ -98,12 +98,7 @@ Now when you run the program you will see all the errors that may occur when run
 ### Linux
 1. Navigate to ```"$HOME/.local/share/auto-meeting-subs``` either via file manager (may require enabling seeing hidden files) or console
 2. Open a terminal in this location and run ```./uninstall.sh```
-3. The program should now be deleted. Although some of dependencies won't be deleted such as **python3.10 and ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
-  * Python3.10
-    - Debian based(ie Ubuntu, Mint, Debian): ```sudo apt remove --purge python3.10``` then ```sudo apt autoremove```
-    - Fedora/RHEL/CectOS: ```sudo dnf remove python3.10``` or if on older version ```sudo yum remove python3.10```
-    - Arch/Manjaro: ```sudo pacman -Rs python310```
-    - Other linux distros will have to look it up.
+3. The program should now be deleted. Although some of dependencies won't be deleted such as **ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
   * Ollama
     1. Remove ollama services: 
       ```
@@ -125,22 +120,14 @@ Now when you run the program you will see all the errors that may occur when run
 ### Windows
 1. Navigate to ```C:\Users\<YourUsername>\AppData\Local\Auto-Meeting-Subs``` via file explorer
 2. Double click on ```uninstall.bat```
-3. The program should now be deleted. Although some of dependencies won't be deleted such as **python3.10 and ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
-  * Python3.10
-    - Uninstall via the control panel
+3. The program should now be deleted. Although some of dependencies won't be deleted such as **ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
   * Ollama
     - Uninstall via the control panel
 ### Mac
 1. Navigate to ```/home/your-username/.local/share/Auto-Meeting-Subs``` either via file manager (may require enabling seeing hidden files) or terminal
 2. Open a terminal if not opened already and run ```./uninstall.command```
-3. The program should now be deleted. Although some of dependencies won't be deleted such as **python3.10 and ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
-  * Python3.10
-    - If it was installed via brew run in terminal ```brew uninstall python@3.10```
-    - If it was insatlled manually run in terminal 
-      ```
-      sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.10
-      sudo rm -rf /usr/local/bin/python3.10
-      ```
+3. The program should now be deleted. Although some of dependencies won't be deleted such as 
+**ollama which may be used by other programs that you have installed in the meantime**. If you are sure that no other programs are using you can uninstall
   * Ollama
     - In terminal run 
       ```
