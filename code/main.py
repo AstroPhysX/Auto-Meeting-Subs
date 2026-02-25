@@ -1,3 +1,5 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))  # ensure sibling modules can be imported
 from file_utils import setup_app_environment, audio_or_video, get_creation_date
 APPDATA_DIR = setup_app_environment()
 import warnings
