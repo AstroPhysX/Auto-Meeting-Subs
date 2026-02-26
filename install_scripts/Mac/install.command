@@ -32,6 +32,12 @@ install_python() {
         xcode-select --install || true
     fi
 
+    # Install OpenSSL via Homebrew if not present
+    if ! brew list openssl@3 &>/dev/null; then
+        echo "Installing OpenSSL..."
+        brew install openssl@3
+    fi
+
     mkdir -p "$APP_INSTALL_DIR/src"
     cd "$APP_INSTALL_DIR/src"
 
@@ -40,7 +46,9 @@ install_python() {
     tar -xzf Python-$PYTHON_VERSION.tgz
     cd Python-$PYTHON_VERSION
 
-    # Build and install to isolated prefix
+    # Build with OpenSSL support
+    LDFLAGS="-L$(brew --prefix openssl@3)/lib" \
+    CPPFLAGS="-I$(brew --prefix openssl@3)/include" \
     ./configure --prefix="$PYTHON_PREFIX" --enable-optimizations
     make -j$(sysctl -n hw.ncpu)
     make install

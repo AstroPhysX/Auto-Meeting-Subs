@@ -24,8 +24,7 @@ install_python() {
             libbz2-dev libreadline-dev wget curl
 
     elif command -v dnf &> /dev/null; then
-        sudo dnf install -y gcc make bzip2 bzip2-devel zlib-devel libffi-devel readline-devel sqlite-devel wget xz-devel
-
+        sudo dnf install -y gcc make zlib-devel bzip2 bzip2-devel xz-devel libffi-devel readline-devel sqlite-devel wget openssl-devel pciutils lshw
     elif command -v pacman &> /dev/null; then
         sudo pacman -Sy --noconfirm base-devel openssl zlib \
             bzip2 libffi readline sqlite wget
