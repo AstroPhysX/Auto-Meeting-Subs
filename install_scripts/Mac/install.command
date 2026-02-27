@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 set -e
+# ----------------------------
+# Crash logging
+# ----------------------------
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE}" )" && pwd )"
+CRASH_LOG="$SCRIPT_DIR/crash.log"
+
+# Function to log errors
+log_error() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$CRASH_LOG"
+}
+
+# Trap errors and log them
+trap 'log_error "Script failed at line $LINENO with exit code $?"; exit 1' ERR
+set -o pipefail
 
 # ----------------------------
 # Configuration
@@ -122,3 +137,4 @@ EOF
 echo "Installation complete!"
 echo "You can now launch $APP_NAME from Applications or Finder."
 echo "To uninstall, remove '$APP_INSTALL_DIR' and '$APP_BUNDLE'."
+exit 0

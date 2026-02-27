@@ -56,10 +56,10 @@ def setup_app_environment():
         import subprocess
         default_jit_cache = Path(os.getenv("LOCALAPPDATA")) / "torch" / "kernels"
         if default_jit_cache.exists():
-            if default_jit_cache.is_dir() and not default_jit_cache.is_symlink():
-                shutil.rmtree(default_jit_cache)
+            if default_jit_cache.is_dir():
+                subprocess.run(["powershell", "-Command", f"Remove-Item -Path '{default_jit_cache}' -Recurse -Force"], shell=True)
             else:
-                default_jit_cache.unlink()
+                print("The path exists but is not a directory or symlink.")
         default_jit_cache.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["cmd", "/c", "mklink", "/J", str(default_jit_cache), str(jit_kernel_dir)], shell=True)
         

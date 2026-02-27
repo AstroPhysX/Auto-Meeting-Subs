@@ -19,6 +19,9 @@ $PythonEmbedUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$Pyth
 $PythonDir = "$InstallDir\python"
 $PythonExe = "$PythonDir\python.exe"
 
+$VCRedistUrl = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+$VCRedistInstaller = "$env:TEMP\vc_redist.x64.exe"
+
 Write-Host "Installing $AppName..."
 
 # ----------------------------
@@ -81,8 +84,26 @@ Copy-Item -Recurse -Force ".\icons\*" -Destination "$InstallDir\icons"
 # Install Requirements (into embedded Python)
 # ----------------------------
 Write-Host "Installing dependencies..."
-& "$PythonDir\Scripts\pip.exe" install --upgrade pip
-& "$PythonDir\Scripts\pip.exe" install -r "$InstallDir\requirements.txt"
+& "$PythonDir\Scripts\pip.exe" install --upgrade pip --no-warn-script-location
+& "$PythonDir\Scripts\pip.exe" install -r "$InstallDir\requirements.txt" --no-warn-script-location
+# ----------------------------
+# Install Microsoft Visual C++ Redistributable
+# ----------------------------
+Write-Host "Installing Microsoft Visual C++ Redistributable..."
+
+$VCRedistUrl = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+$VCRedistInstaller = "$env:TEMP\vc_redist.x64.exe"
+
+# Download
+Invoke-WebRequest $VCRedistUrl -OutFile $VCRedistInstaller
+
+# Install silently
+& $VCRedistInstaller /quiet /norestart
+
+# Wait for installation to complete
+Start-Sleep -Seconds 5
+
+Write-Host "Visual C++ Redistributable installed successfully"
 
 # ----------------------------
 # Create Launcher (direct execution)

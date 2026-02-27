@@ -28,7 +28,7 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
     print("Installing FFmpeg...")
 
     if system == "windows":
-        # Windows 64-bit essentials build
+        # Windows 64-bit full build
         ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip"
         archive_path = ffmpeg_root / "ffmpeg.zip"
 
