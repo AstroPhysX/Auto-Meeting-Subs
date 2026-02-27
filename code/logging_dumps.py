@@ -42,8 +42,9 @@ def setup_logging():
         logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
     sys.excepthook = handle_exception
-
+    """
     logging.info("==== CLI tool started ====")
     logging.info("Python: %s", platform.python_version())
     logging.info("OS: %s", platform.platform())
     logging.info("CWD: %s", os.getcwd())
+    """

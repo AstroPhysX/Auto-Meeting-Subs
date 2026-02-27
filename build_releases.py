@@ -70,8 +70,8 @@ def build_zip(platform, config):
             dst.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     # Copy code folder
-    shutil.copytree(CODE_DIR, temp_dir / "code")
-
+    shutil.copytree(CODE_DIR, temp_dir / "code", ignore=lambda dir, contents: [item for item in contents if os.path.isdir(os.path.join(dir, item))])
+    
     # Copy icons folder
     shutil.copytree(ICON_DIR, temp_dir / "icons")
 

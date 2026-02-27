@@ -15,3 +15,5 @@ auto-meeting-subs-env/
 mlenv/
 testenv/
 **/__pycache__/
+310envdistrobox/
+logs

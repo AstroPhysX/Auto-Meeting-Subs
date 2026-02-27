@@ -68,6 +68,7 @@ def setup_app_environment():
 
     # Make it globally accessible in this session
     os.environ["FFMPEG_PATH"] = str(ffmpeg_path)
+    os.environ["FFPROBE_PATH"] = str(ffmpeg_path.parent / "ffprobe")
     os.environ["PATH"] = str(ffmpeg_path.parent) + os.pathsep + os.environ.get("PATH", "")
 
     return appdata_dir
@@ -114,20 +115,9 @@ def get_creation_date(file_path):
     """
 
     try:
-        cmd = [
-            "ffprobe",
-            "-v", "quiet",
-            "-print_format", "json",
-            "-show_format",
-            file_path
-        ]
+        cmd = ["ffprobe","-v", "quiet","-print_format", "json","-show_format",file_path]
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        result = subprocess.run(cmd,capture_output=True,text=True,check=True)
 
         metadata = json.loads(result.stdout)
 
@@ -138,9 +128,7 @@ def get_creation_date(file_path):
         )
 
         if creation_time:
-            dt = datetime.fromisoformat(
-                creation_time.replace("Z", "+00:00")
-            )
+            dt = datetime.fromisoformat(creation_time.replace("Z", "+00:00"))
             return dt.timestamp()
 
     except Exception as e:

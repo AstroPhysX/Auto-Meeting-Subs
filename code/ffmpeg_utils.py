@@ -9,6 +9,47 @@ import urllib.request
 from pathlib import Path
 from better_ffmpeg_progress import FfmpegProcess, FfmpegProcessError
 
+def has_encoder(ffmpeg_path: Path, encoder: str) -> bool:
+    """Check if a specific encoder is available in ffmpeg."""
+    try:
+        result = subprocess.run([str(ffmpeg_path), "-encoders"],capture_output=True,text=True,check=True)
+        return encoder in result.stdout
+    except Exception:
+        return False
+
+def detect_gpu() -> str:
+    """
+    Detect GPU type on the system.
+    Returns: 'nvidia', 'amd', 'intel', or 'none'
+    """
+    system = platform.system().lower()
+    
+    if system == "windows":
+        gpu_name = subprocess.run(["wmic", "path", "win32_videocontroller", "get", "name"],capture_output=True,text=True,timeout=5)
+    elif system == "darwin":
+        gpu_name =subprocess.run(["system_profiler", "SPDisplaysDataType"],capture_output=True,text=True,timeout=5)
+    elif system == "linux":
+        gpu_name = subprocess.run(["lspci"],capture_output=True,text=True,timeout=5)
+    else:
+        return "none"
+    
+    gpu_name = gpu_name.stdout.lower()
+
+    encoders_map = {
+        "nvidia": ("h264_nvenc", "hevc_nvenc"),
+        "intel": ("h264_qsv", "hevc_qsv"),
+        "amd": ("h264_amf", "hevc_amf"),
+        "apple_silicon": ("h264_videotoolbox", "hevc_videotoolbox"),
+    }
+
+    if "apple" in gpu_name or "m1" in gpu_name or "m2" in gpu_name or "m3" in gpu_name:
+        return ["apple_silicon", encoders_map["apple_silicon"]]
+    elif "nvidia" in gpu_name:
+        return ["nvidia", encoders_map["nvidia"]]
+    elif "amd" in gpu_name or "radeon" in gpu_name:
+        return ["amd", encoders_map["amd"]]
+    elif "intel" in gpu_name:
+        return ["intel", encoders_map["intel"]]
 
 def install_ffmpeg(appdata_dir: Path) -> Path:
     ffmpeg_root = appdata_dir / "ffmpeg"
@@ -21,7 +62,18 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
     ffmpeg_binary = "ffmpeg.exe" if system == "windows" else "ffmpeg"
     ffmpeg_path = ffmpeg_dir / ffmpeg_binary
 
+    gpu, compatible_encoders = detect_gpu()
     # Already installed?
+    
+    if shutil.which("ffmpeg"):
+        ffmpeg_path = shutil.which("ffmpeg")
+        ffmpeg_path = Path(ffmpeg_path)
+        # Check common GPU encoders
+        for gpu_encoder in compatible_encoders:
+            if has_encoder(ffmpeg_path, gpu_encoder):
+                #print(f"Using system wide install of FFmpeg with {compatible_encoders}")
+                return ffmpeg_path
+    
     if ffmpeg_path.exists():
         return ffmpeg_path
 
@@ -61,8 +113,8 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
 
     elif system == "linux":
         # Detect architecture
-        if arch in ["x86_64", "amd64"]:
-            ffmpeg_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+        if arch in ["x86_64", "amd64"] and gpu in ["nvidia", "amd", "intel"]:
+            ffmpeg_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
         elif arch in ["arm64", "aarch64"]:
             ffmpeg_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz"
         else:
@@ -76,7 +128,12 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
             tar_ref.extractall(ffmpeg_root)
 
         extracted = next(ffmpeg_root.glob("ffmpeg-*"))
-        shutil.move(extracted / "ffmpeg", ffmpeg_path)
+        if arch in ["x86_64", "amd64"] and gpu in ["nvidia", "amd", "intel"]:
+            shutil.move(extracted /"bin"/ "ffmpeg", ffmpeg_path)
+            shutil.move(extracted /"bin"/ "ffprobe", ffmpeg_dir / "ffprobe")
+        else:
+            shutil.move(extracted / "ffmpeg", ffmpeg_path)
+            shutil.move(extracted / "ffprobe", ffmpeg_dir / "ffprobe")
 
         shutil.rmtree(extracted)
         archive_path.unlink()
