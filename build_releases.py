@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).parent.resolve()
 
 CODE_DIR = REPO_ROOT / "code"
 ICON_DIR = REPO_ROOT / "icons"
+PYTHON_DIR = REPO_ROOT / "python_installers"
 
 PLATFORMS = {
     "linux": {
@@ -75,6 +76,14 @@ def build_zip(platform, config):
     # Copy icons folder
     shutil.copytree(ICON_DIR, temp_dir / "icons")
 
+    # Copy python installer folder
+    python_dir = temp_dir/"python"
+    python_dir.mkdir()
+    if platform == "windows":
+        shutil.copy2(PYTHON_DIR/"python-3.10.11-embed-amd64.zip", temp_dir/"python"/"python-3.10.11-embed-amd64.zip")
+        shutil.copy2(PYTHON_DIR/"python-3.10.11-embed-win32.zip", temp_dir/"python"/"python-3.10.11-embed-win32.zip")
+    else:
+        shutil.copy(PYTHON_DIR/"Python-3.10.11.tgz", temp_dir/"python"/"Python-3.10.11.tgz")
     # Create zip
     zip_path = RELEASE_DIR / config["zip_name"]
     if zip_path.exists():

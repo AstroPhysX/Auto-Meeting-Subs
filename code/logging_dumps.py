@@ -5,12 +5,20 @@ from datetime import datetime
 import platform
 import os
 import glob
+from pathlib import Path
 
 LOG_DIR = "logs"
 KEEP_LAST_LOGS = 10
 
 def setup_logging():
-    os.makedirs(LOG_DIR, exist_ok=True)
+    if platform.system() == "Windows":
+        base_dir = Path(os.getenv("LOCALAPPDATA"))
+    else:
+        base_dir = Path.home() / ".local" / "share"
+    
+    appdata_dir = base_dir / "auto-meeting-subs"
+
+    os.makedirs(appdata_dir/LOG_DIR, exist_ok=True)
 
     log_file = os.path.join(
         LOG_DIR,
@@ -30,7 +38,6 @@ def setup_logging():
         format="%(asctime)s | %(levelname)s | %(message)s",
         handlers=[
             logging.FileHandler(log_file, encoding="utf-8"),
-            logging.StreamHandler(sys.__stdout__),
         ],
     )
 
@@ -42,9 +49,8 @@ def setup_logging():
         logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
     sys.excepthook = handle_exception
-    """
+    
     logging.info("==== CLI tool started ====")
     logging.info("Python: %s", platform.python_version())
     logging.info("OS: %s", platform.platform())
     logging.info("CWD: %s", os.getcwd())
-    """

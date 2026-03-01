@@ -12,6 +12,7 @@ from pathlib import Path
 from config_manager import create_config, read_config
 from ffmpeg_utils import convert_to_wav, compressing_audio_to_mp3, compress_video_auto
 from whisperx_pipeline import whisper
+from ollama_services import reload_models
 from summarization_via_ollama import summarize_transcript
 
 def main():
@@ -165,7 +166,7 @@ def main():
         while True:
             summarize = input("Would like to use ollama to summarize this meeting? (y/n): ").lower()
             if summarize == "y":
-                summarize_transcript(transcript_path)
+                models_before_ams, password, ollama_starting_state = summarize_transcript(transcript_path)
                 break
             elif summarize == "n":
                 break
@@ -182,6 +183,9 @@ def main():
                 break
             else:
                 print("Invalid input. Please enter 'y' or 'n'.")
+    
+    if ollama_starting_state == "on":
+        reload_models(models_before_ams, password)
 
 if __name__ == "__main__":
     main()

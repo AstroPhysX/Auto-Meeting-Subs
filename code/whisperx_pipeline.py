@@ -33,11 +33,19 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
     else:
         device = "cpu"
 
-    
+    # Choose compute type safely per backend
+    # reduce if low on GPU mem
+    if device == "cuda":
+        compute_types = ["float16", "float32", "int8"]
+    elif device == "mps":
+        compute_types = ["float16", "float32"]   # MPS is picky
+    else:
+        compute_types = ["int8", "float32"]
+
     # reduce if low on GPU mem
     # 1. Transcribe with original whisper (batched)
-    compute_types = ["float16","float32","int8"]
     num_fails = 0
+    max_fails = len(compute_types)
     print(">>Constructing Model...")
     while True:
         try:
@@ -45,18 +53,20 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
                 print(f"Constructing model with {device} and {compute_types[num_fails]}")
                 # Call the function with the current parameter value
                 modload = whisperx.load_model(model, device, compute_type=compute_types[num_fails], download_root=model_location)
+                break
             else:
-                modload = suppress_specific_warning(whisperx.load_model,model,device,compute_type=compute_types[num_fails],download_root=model_location)  
+                modload = suppress_specific_warning(whisperx.load_model,model,device,compute_type=compute_types[num_fails],download_root=model_location)
+                break
         except Exception as e:
             if dev:
                 print(e)
             num_fails += 1
-            if num_fails == 3:
+            if device =="cuda":
+                torch.cuda.empty_cache()
+            gc.collect()
+            if num_fails == max_fails:
                 # Third failure, raise an error message
                 raise RuntimeError("Function failed three times in a row")
-        else:
-            # If no exception occurs, break out of the loop
-            break
     
     print(">>Performing transcription...")
     try:
@@ -73,9 +83,10 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
         print('Transcription completed')
     
     # Unload Whisper and VAD
-    del model
+    del modload
     gc.collect()
-    torch.cuda.empty_cache()
+    if device == "cuda":
+        torch.cuda.empty_cache()
     
     # 2. Align whisper output
     print(">>Performing alignment...")
@@ -89,7 +100,8 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
     # Unload align model
     del model_a
     gc.collect()
-    torch.cuda.empty_cache()
+    if device == "cuda":
+        torch.cuda.empty_cache()
     
     # 3. Diarize
     print(">>Performing diarization...")
@@ -103,6 +115,11 @@ def whisper(file, output_loc, model_location, model, subformat, num_speakers, to
     if dev:
         print('Assigning speakers')
     result = whisperx.assign_word_speakers(diarize_segments, result)
+    
+    del diarize_model, diarize_segments,audio
+    gc.collect()
+    if device == "cuda":
+        torch.cuda.empty_cache()
     
     #writing file
     os.makedirs(output_loc, exist_ok=True)

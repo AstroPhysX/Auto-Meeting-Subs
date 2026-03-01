@@ -11,8 +11,8 @@ import json
 import time
 from tqdm import tqdm
 import requests
-from ollama_services import ollama_checks
-ollama_checks()
+from ollama_services import ollama_checks, kill_ollama, start_ollama, is_ollama_running, wait_for_ollama
+models_before_ams, password, ollama_starting_state = ollama_checks()
 import ollama
 
 # -------------------------
@@ -233,7 +233,10 @@ Section Summaries:
 # MAIN Summarizing function
 # -------------------------
 def summarize_transcript(transcript_path, dev=False):
-
+    if not is_ollama_running():
+        start_ollama(password)
+        wait_for_ollama()
+    
     model = select_model()
     print(f">Selected model: {model}")
 
@@ -247,5 +250,15 @@ def summarize_transcript(transcript_path, dev=False):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("Remeber that this is an AI summary and it may have made major mistakes in its output.")
         f.write(final_summary)
-
+    
+    kill_ollama(password)
+    print("ollama killed")
     print(f"\n>Summary saved to: {output_path}")
+    #print(f"previous models {models_before_ams}, password {password}, previous sate {ollama_starting_state}")
+    return models_before_ams, password, ollama_starting_state
+
+"""
+if __name__ == "__main__":
+    transcript_path='/home/aleluc/Videos/AutoMeetingSubsTesting/Meeting 2026.01.29.vtt'
+    summarize_transcript(transcript_path)
+"""
