@@ -7,9 +7,9 @@ APP_NAME="Auto-Meeting-Subs"
 APP_ID="auto-meeting-subs"
 APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
 APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
-PYTHON_VERSION="3.11.10"
+PYTHON_VERSION="3.10.19"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
-PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
+PYTHON_BIN="$PYTHON_PREFIX/bin/${PYTHON_VERSION%.*}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENSSL_VERSION="3.3.1"
 OPENSSL_PREFIX="$APP_INSTALL_DIR/vendor/openssl"
@@ -51,9 +51,16 @@ run_step() {
 
   wait "$pid"
   local status=$?
+  set -e
+
+  printf "\r\033[K"
 
   if [ $status -ne 0 ]; then
-    echo "❌ Failed: $label"
+    if [ $status -ge 128 ]; then
+      echo "❌ Failed: $label (crashed: signal $((status - 128)))"
+    else
+      echo "❌ Failed: $label (exit code: $status)"
+    fi
     echo "   See log: $LOG_FILE"
     exit 1
   fi
@@ -90,7 +97,7 @@ install_python() {
         --openssldir="$OPENSSL_PREFIX/ssl"
 
     run_step "Building OpenSSL" make -j$(sysctl -n hw.ncpu)
-    run_step "Installing OpennSSL" make install_sw
+    run_step "Installing isoloate OpennSSL" make install_sw
 
     cd "$SRC_DIR"
 
@@ -105,7 +112,7 @@ install_python() {
     export CPPFLAGS="-I$OPENSSL_PREFIX/include"
     export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig"
 
-    run_step "Configuring Python"./configure \
+    run_step "Configuring Python" ./configure \
         --prefix="$PYTHON_PREFIX" \
         --enable-optimizations \
         --with-openssl="$OPENSSL_PREFIX"
@@ -121,8 +128,8 @@ if [ ! -x "$PYTHON_BIN" ]; then
 fi
 
 # Ensure pip exists and upgrade
-"$PYTHON_BIN" -m ensurepip --upgrade
-"$PYTHON_BIN" -m pip install --upgrade pip
+run_step "Checking pip installed" "$PYTHON_BIN" -m ensurepip --upgrade
+run_step "Updating pip..." "$PYTHON_BIN" -m pip install --upgrade pip
 
 # ----------------------------
 # Prepare app directories
