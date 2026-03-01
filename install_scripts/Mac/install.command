@@ -27,6 +27,8 @@ PYTHON_VERSION="3.10.11"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
 PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENSSL_VERSION="3.3.1"
+OPENSSL_PREFIX="$APP_INSTALL_DIR/vendor/openssl"
 
 # Paths inside the .app bundle
 APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
@@ -47,27 +49,45 @@ install_python() {
         xcode-select --install || true
     fi
 
-    # Install OpenSSL via Homebrew if not present
-    if ! brew list openssl@3 &>/dev/null; then
-        echo "Installing OpenSSL..."
-        brew install openssl@3
-    fi
+    SRC_DIR="$APP_INSTALL_DIR/src"
 
-    mkdir -p "$APP_INSTALL_DIR/src"
-    cd "$APP_INSTALL_DIR/src"
+    mkdir -p "$SRC_DIR"
+    cd "$SRC_DIR"
+
+    echo "Downloading OpenSSL $OPENSSL_VERSION..."
+    curl -LO https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+    tar -xzf openssl-$OPENSSL_VERSION.tar.gz
+    cd openssl-$OPENSSL_VERSION
+
+    echo "Building vendored OpenSSL..."
+    ./Configure darwin64-$(uname -m)-cc shared no-tests \
+        --prefix="$OPENSSL_PREFIX" \
+        --openssldir="$OPENSSL_PREFIX/ssl"
+
+    make -j$(sysctl -n hw.ncpu)
+    make install_sw
+
+    cd "$SRC_DIR"
 
     # Download Python source
+    echo "Downloading Python $PYTHON_VERSION..."
     curl -LO https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz
     tar -xzf Python-$PYTHON_VERSION.tgz
     cd Python-$PYTHON_VERSION
 
-    # Build with OpenSSL support
-    LDFLAGS="-L$(brew --prefix openssl@3)/lib" \
-    CPPFLAGS="-I$(brew --prefix openssl@3)/include" \
-    ./configure --prefix="$PYTHON_PREFIX" --enable-optimizations
+    echo "Building Python against vendored OpenSSL..."
+    export LDFLAGS="-L$OPENSSL_PREFIX/lib"
+    export CPPFLAGS="-I$OPENSSL_PREFIX/include"
+    export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig"
+
+    ./configure \
+        --prefix="$PYTHON_PREFIX" \
+        --enable-optimizations \
+        --with-openssl="$OPENSSL_PREFIX"
+
     make -j$(sysctl -n hw.ncpu)
     make install
-
+    install_name_tool -add_rpath "@executable_path/../lib" "$PYTHON_PREFIX/bin/python3"
     echo "Python installed at $PYTHON_PREFIX"
 }
 
