@@ -1,29 +1,13 @@
 #!/usr/bin/env bash
 set -e
 # ----------------------------
-# Crash logging
-# ----------------------------
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE}" )" && pwd )"
-CRASH_LOG="$SCRIPT_DIR/crash.log"
-
-# Function to log errors
-log_error() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$CRASH_LOG"
-}
-
-# Trap errors and log them
-trap 'log_error "Script failed at line $LINENO with exit code $?"; exit 1' ERR
-set -o pipefail
-
-# ----------------------------
 # Configuration
 # ----------------------------
 APP_NAME="Auto-Meeting-Subs"
 APP_ID="auto-meeting-subs"
 APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
 APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
-PYTHON_VERSION="3.10.11"
+PYTHON_VERSION="3.11.10"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
 PYTHON_BIN="$PYTHON_PREFIX/bin/python3.10"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,6 +19,47 @@ APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
 DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.icns"
 
+LOG_FILE="$SCRIPT_DIR/install.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+: > "$LOG_FILE"   # clear old log
+
+spinner() {
+  local pid=$1
+  local spin='-\|/'
+  local i=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    i=$(( (i + 1) % 4 ))
+    printf "\r⏳ Working... %s" "${spin:$i:1}"
+    sleep 0.1
+  done
+
+  printf "\r"
+}
+
+run_step() {
+  local label="$1"
+  shift
+
+  echo "▶ $label..."
+
+  # Run command in background, log everything
+  "$@" >>"$LOG_FILE" 2>&1 &
+  local pid=$!
+
+  spinner "$pid"
+
+  wait "$pid"
+  local status=$?
+
+  if [ $status -ne 0 ]; then
+    echo "❌ Failed: $label"
+    echo "   See log: $LOG_FILE"
+    exit 1
+  fi
+
+  echo "✅ Done"
+}
 echo "Installing $APP_NAME..."
 
 # ----------------------------
@@ -60,12 +85,12 @@ install_python() {
     cd openssl-$OPENSSL_VERSION
 
     echo "Building vendored OpenSSL..."
-    ./Configure darwin64-$(uname -m)-cc shared no-tests \
+    run_step "Configuring OpenSSL" ./Configure darwin64-$(uname -m)-cc shared no-tests \
         --prefix="$OPENSSL_PREFIX" \
         --openssldir="$OPENSSL_PREFIX/ssl"
 
-    make -j$(sysctl -n hw.ncpu)
-    make install_sw
+    run_step "Building OpenSSL" make -j$(sysctl -n hw.ncpu)
+    run_step "Installing OpennSSL" make install_sw
 
     cd "$SRC_DIR"
 
@@ -80,13 +105,13 @@ install_python() {
     export CPPFLAGS="-I$OPENSSL_PREFIX/include"
     export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig"
 
-    ./configure \
+    run_step "Configuring Python"./configure \
         --prefix="$PYTHON_PREFIX" \
         --enable-optimizations \
         --with-openssl="$OPENSSL_PREFIX"
 
-    make -j$(sysctl -n hw.ncpu)
-    make install
+    run_step "Building Python" make -j$(sysctl -n hw.ncpu)
+    run_step "Installing Python" make install
     install_name_tool -add_rpath "@executable_path/../lib" "$PYTHON_PREFIX/bin/python3"
     echo "Python installed at $PYTHON_PREFIX"
 }
@@ -116,7 +141,7 @@ fi
 # ----------------------------
 # Install Python dependencies
 # ----------------------------
-"$PYTHON_BIN" -m pip install -r "$APP_INSTALL_DIR/requirements.txt"
+run_step "Downloading and Installing Python Modules" "$PYTHON_BIN" -m pip install -r "$APP_INSTALL_DIR/requirements.txt"
 
 # ----------------------------
 # Create launcher script inside .app
