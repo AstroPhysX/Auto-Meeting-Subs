@@ -9,7 +9,7 @@ APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
 APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
 PYTHON_VERSION="3.10.19"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
-PYTHON_BIN="$PYTHON_PREFIX/bin/${PYTHON_VERSION%.*}"
+PYTHON_BIN="$PYTHON_PREFIX/bin/Python${PYTHON_VERSION%.*}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENSSL_VERSION="3.3.1"
 OPENSSL_PREFIX="$APP_INSTALL_DIR/vendor/openssl"
@@ -86,8 +86,7 @@ install_python() {
     mkdir -p "$SRC_DIR"
     cd "$SRC_DIR"
 
-    echo "Downloading OpenSSL $OPENSSL_VERSION..."
-    curl -LO https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+    run_step "Downloading OpenSSL $OPENSSL_VERSION..." curl -LO https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
     tar -xzf openssl-$OPENSSL_VERSION.tar.gz
     cd openssl-$OPENSSL_VERSION
 
@@ -103,11 +102,11 @@ install_python() {
 
     # Download Python source
     echo "Downloading Python $PYTHON_VERSION..."
-    curl -LO https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz
+    run_step "Downloading Python $PYTHON_VERSION..." curl -LO https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz
     tar -xzf Python-$PYTHON_VERSION.tgz
     cd Python-$PYTHON_VERSION
 
-    echo "Building Python against vendored OpenSSL..."
+    #Building Python against vendored OpenSSL...
     export LDFLAGS="-L$OPENSSL_PREFIX/lib"
     export CPPFLAGS="-I$OPENSSL_PREFIX/include"
     export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig"
