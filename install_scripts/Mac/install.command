@@ -186,5 +186,6 @@ echo "You can now launch $APP_NAME from Applications or Finder."
 } || {
   echo " ❌ Failed, somee error occurred during installation"
   echo "   See log: $LOG_FILE"
+  echo "   If you want to reattempt to install the program after a fix, I highly recommend that you run the uninstall script prior to attempting to run the install script again."
 }
 exit 0
