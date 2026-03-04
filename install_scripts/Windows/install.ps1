@@ -4,9 +4,6 @@
 if (-not (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)){
     Install-Module ThreadJob -Scope CurrentUser
 }
-if (-not (Get-Command wmic -ErrorAction SilentlyContinue)){
-    Enable-WindowsOptionalFeature -Online -FeatureName "WmiCmdlets"
-}
 
 try{
 $AppName = "Auto-Meeting-Subs"
@@ -28,8 +25,6 @@ $PythonExe = "$PythonDir\python.exe"
 $VCRedistUrl = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 $VCRedistInstaller = "$env:TEMP\vc_redist.x64.exe"
 
-Write-Host "Installing $AppName..."
-
 # Get directory of this .ps1 script (like BASH_SOURCE[0])
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
 # Set log file next to the script
@@ -40,21 +35,21 @@ New-Item -ItemType Directory -Force -Path $SCRIPT_DIR | Out-Null
 New-Item -ItemType File -Force -Path $LOG_FILE | Out-Null
 
 function Start-Spinner {
-    param([int]$JobId)
+    param([System.Management.Automation.Job]$Job)
 
     $spin = @('-', '\', '|', '/')
     $i = 0
 
-    while ((Get-Job -Id $JobId).State -eq "Running") {
+    while ($Job.State -notin @('Completed','Failed','Stopped')) {
         $char = $spin[$i % $spin.Length]
-        Write-Host -NoNewline "`r -Working... $char"
+        Write-Host -NoNewline "`r -Working... $char    "
         Start-Sleep -Milliseconds 100
+        $Job = Get-Job -Id $Job.Id
         $i++
     }
 
     Write-Host -NoNewline "`r"
 }
-
 function run-step {
     param(
         [string]$Label,
@@ -77,13 +72,14 @@ function run-step {
 
     } -ArgumentList $Command, $LOG_FILE
 
-    Start-Spinner -JobId $job.Id
+    Start-Spinner -Job $job
 
     Wait-Job $job | Out-Null
     $exitCode = Receive-Job $job
     Remove-Job $job
 
-    Write-Host -NoNewline "`r`e[0K"
+    $esc = [char]27
+    Write-Host -NoNewline "`r${esc}[0K"
 
     if ($exitCode -ne 0) {
         Write-Host "X Failed: $Label"
@@ -103,8 +99,6 @@ New-Item -ItemType Directory -Force -Path $PythonDir | Out-Null
 # Download & Extract Embedded Python
 # ----------------------------
 if (!(Test-Path $PythonExe)) {
-
-    Write-Host "Downloading embedded Python $PythonVersion..."
     $TempZip = "$env:TEMP\python-embed.zip"
 
     Import-Module Microsoft.PowerShell.Utility
@@ -133,11 +127,6 @@ if (!(Test-Path $PythonExe)) {
 }
 
 # ----------------------------
-# Verify Python
-# ----------------------------
-& $PythonExe --version
-
-# ----------------------------
 # Install pip (embed does not include it)
 # ----------------------------
 $GetPip = "$env:TEMP\get-pip.py"
@@ -150,7 +139,7 @@ Remove-Item $GetPip
 # Copy Application Files
 # ----------------------------
 Copy-Item -Recurse -Force ".\code\*" -Destination $InstallDir
-Copy-Item -Recurse -Force ".\icons\*" -Destination "$InstallDir\icons"
+Copy-Item -Recurse -Force ".\icons" -Destination $InstallDir
 
 # ----------------------------
 # Install Requirements (into embedded Python)

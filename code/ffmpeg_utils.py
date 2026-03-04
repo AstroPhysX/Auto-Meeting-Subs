@@ -25,13 +25,16 @@ def detect_gpu() -> str:
     system = platform.system().lower()
     
     if system == "windows":
-        gpu_name = subprocess.run(["wmic", "path", "win32_videocontroller", "get", "name"],capture_output=True,text=True,timeout=5)
+        try:
+            gpu_name = subprocess.run(["powershell", "-Command", "Get-CimInstance -ClassName Win32_VideoController -Property Name | Select-Object -ExpandProperty Name"],capture_output=True,text=True,timeout=5)
+        except:
+            gpu_name = subprocess.run(["wmic", "path", "win32_videocontroller", "get", "name"],capture_output=True,text=True,timeout=5)
     elif system == "darwin":
         gpu_name =subprocess.run(["system_profiler", "SPDisplaysDataType"],capture_output=True,text=True,timeout=5)
     elif system == "linux":
         gpu_name = subprocess.run(["lspci"],capture_output=True,text=True,timeout=5)
     else:
-        return "none"
+        return "none", None
     
     gpu_name = gpu_name.stdout.lower()
 
@@ -50,6 +53,8 @@ def detect_gpu() -> str:
         return ["amd", encoders_map["amd"]]
     elif "intel" in gpu_name:
         return ["intel", encoders_map["intel"]]
+    else:
+        return "none", None
 
 def install_ffmpeg(appdata_dir: Path) -> Path:
     ffmpeg_root = appdata_dir / "ffmpeg"
@@ -118,7 +123,7 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
         elif arch in ["arm64", "aarch64"]:
             ffmpeg_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz"
         else:
-            raise RuntimeError(f"Unsupported Linux architecture: {arch}")
+            ffmpeg = "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz"
 
         archive_path = ffmpeg_root / "ffmpeg.tar.xz"
 
