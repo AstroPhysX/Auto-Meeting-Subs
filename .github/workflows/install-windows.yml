@@ -28,7 +28,7 @@ jobs:
       - name: Verify install directory
         shell: pwsh
         run: |
-          $InstallDir = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs"
+          $InstallDir = "$env:USERPROFILE\AppData\Local\auto-meeting-subs"
           if (!(Test-Path $InstallDir)) {
             Write-Error "Install directory not found!"
           }
@@ -36,7 +36,7 @@ jobs:
       - name: Verify embedded Python exists
         shell: pwsh
         run: |
-          $PythonExe = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\python\python.exe"
+          $PythonExe = "$env:USERPROFILE\AppData\Local\auto-meeting-subs\python\python.exe"
           if (!(Test-Path $PythonExe)) {
             Write-Error "Embedded Python not found!"
           }
@@ -45,7 +45,7 @@ jobs:
       - name: Verify launcher exists
         shell: pwsh
         run: |
-          $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
+          $Launcher = "$env:USERPROFILE\AppData\Local\auto-meeting-subs\launch.ps1"
           if (!(Test-Path $Launcher)) {
             Write-Error "Launcher not created!"
           }
@@ -53,7 +53,7 @@ jobs:
       - name: Smoke test launch (stop at Ollama download)
         shell: pwsh
         run: |
-          $Launcher = "$env:USERPROFILE\AppData\Local\Auto-Meeting-Subs\launch.ps1"
+          $Launcher = "$env:USERPROFILE\AppData\Local\auto-meeting-subs\launch.ps1"
 
           if (!(Test-Path $Launcher)) {
               Write-Error "Launcher not found!"
