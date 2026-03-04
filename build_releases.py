@@ -75,7 +75,7 @@ def build_zip(platform, config):
     
     # Copy icons folder
     shutil.copytree(ICON_DIR, temp_dir / "icons")
-
+    """
     # Copy python installer folder
     python_dir = temp_dir/"python"
     python_dir.mkdir()
@@ -84,6 +84,7 @@ def build_zip(platform, config):
         shutil.copy2(PYTHON_DIR/"python-3.10.11-embed-win32.zip", temp_dir/"python"/"python-3.10.11-embed-win32.zip")
     else:
         shutil.copy(PYTHON_DIR/"Python-3.10.11.tgz", temp_dir/"python"/"Python-3.10.11.tgz")
+    """
     # Create zip
     zip_path = RELEASE_DIR / config["zip_name"]
     if zip_path.exists():

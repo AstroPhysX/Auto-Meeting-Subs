@@ -7,7 +7,6 @@ import os
 import glob
 from pathlib import Path
 
-LOG_DIR = "logs"
 KEEP_LAST_LOGS = 10
 
 def setup_logging():
@@ -17,16 +16,15 @@ def setup_logging():
         base_dir = Path.home() / ".local" / "share"
     
     appdata_dir = base_dir / "auto-meeting-subs"
+    log_dir = appdata_dir / "logs"
+    
+    #ensure directory exists
+    log_dir.mkdir(parents=True, exist_ok=True)
 
-    os.makedirs(appdata_dir/LOG_DIR, exist_ok=True)
-
-    log_file = os.path.join(
-        LOG_DIR,
-        f"cli_run_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
-    )
+    log_file = log_dir / f"cli_run_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
 
     # Auto-delete old logs
-    logs = sorted(glob.glob(os.path.join(LOG_DIR, "cli_run_*.log")))
+    logs = sorted(glob.glob(os.path.join(log_dir, "cli_run_*.log")))
     for old in logs[:-KEEP_LAST_LOGS]:
         try:
             os.remove(old)

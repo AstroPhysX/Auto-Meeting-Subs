@@ -17,3 +17,4 @@ testenv/
 **/__pycache__/
 310envdistrobox/
 logs
+linux my config.ini

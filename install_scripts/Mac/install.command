@@ -6,7 +6,6 @@
 APP_NAME="Auto-Meeting-Subs"
 APP_ID="auto-meeting-subs"
 APP_INSTALL_DIR="$HOME/.local/share/$APP_ID"
-APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
 PYTHON_VERSION="3.10.19"
 PYTHON_PREFIX="$APP_INSTALL_DIR/python"
 PYTHON_BIN="$PYTHON_PREFIX/bin/Python${PYTHON_VERSION%.*}"
@@ -15,6 +14,7 @@ OPENSSL_VERSION="3.3.1"
 OPENSSL_PREFIX="$APP_INSTALL_DIR/vendor/openssl"
 
 # Paths inside the .app bundle
+APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
 APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
 DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.icns"
@@ -76,6 +76,7 @@ install_python() {
     if ! xcode-select -p &>/dev/null; then
         echo "Xcode Command Line Tools not found. Installing..."
         xcode-select --install || true
+        read -rsn1 -p "Press any key to continue once xcode-select has been installed..."   
     fi
 
     SRC_DIR="$APP_INSTALL_DIR/src"
@@ -133,6 +134,8 @@ mkdir -p "$APP_INSTALL_DIR" "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
 # Copy code and icons
 cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
 cp "$SCRIPT_DIR/icons/mac.icns" "$DESKTOP_ICON"
+
+# Moving the uninstall script
 if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
     cp "$SCRIPT_DIR/uninstall.command" "$APP_INSTALL_DIR/"
     chmod +x "$APP_INSTALL_DIR/uninstall.command"
@@ -147,12 +150,13 @@ run_step "Downloading and Installing Python Modules" "$PYTHON_BIN" -m pip instal
 # ----------------------------
 # Create launcher script inside .app
 # ----------------------------
-LAUNCHER="$APP_MACOS_DIR/launch.command"
-cat > "$LAUNCHER" << EOF
-      #!/usr/bin/env bash
-      "$PYTHON_BIN" "$APP_INSTALL_DIR/main.py" "\$@"
+EXECUTABLE="$APP_MACOS_DIR/$APP_NAME"
+cat > "$EXECUTABLE" << EOF
+#!/usr/bin/env bash
+exec "$PYTHON_BIN" "$APP_INSTALL_DIR/main.py" "\$@"
 EOF
-chmod +x "$LAUNCHER"
+
+chmod +x "$EXECUTABLE"
 
 # ----------------------------
 # Create Info.plist
@@ -171,7 +175,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <key>CFBundleVersion</key>
     <string>1.0</string>
     <key>CFBundleExecutable</key>
-    <string>launch.command</string>
+    <string>$APP_NAME</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon.icns</string>
     <key>LSUIElement</key>
@@ -184,7 +188,7 @@ echo "Installation complete!"
 echo "To uninstall, navigate to '$APP_INSTALL_DIR' and run the uninstall script in there. Otherwise you can simply run the uninstaller in the zip."
 echo "You can now launch $APP_NAME from Applications or Finder."
 } || {
-  echo " ❌ Failed, somee error occurred during installation"
+  echo " ❌ Failed, some error occurred during installation"
   echo "   See log: $LOG_FILE"
   echo "   If you want to reattempt to install the program after a fix, I highly recommend that you run the uninstall script prior to attempting to run the install script again."
 }

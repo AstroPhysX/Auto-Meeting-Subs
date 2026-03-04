@@ -125,6 +125,7 @@ def ollama_checks():
         print(">Starting Ollama...")
         password = start_ollama()
         ollama_starting_state = "off"
+        models = None
     else: # ollama is already running; save running models, and restart
         models = get_loaded_models()
         password = kill_ollama()
