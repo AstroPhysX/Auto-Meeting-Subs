@@ -140,6 +140,8 @@ Remove-Item $GetPip
 # ----------------------------
 Copy-Item -Recurse -Force ".\code\*" -Destination $InstallDir
 Copy-Item -Recurse -Force ".\icons" -Destination $InstallDir
+Copy-Item -Recurse -Force ".\scripts" -Destination $InstallDir
+Copy-Item -Force ".\uninstall.bat" -Destination $InstallDir
 
 # ----------------------------
 # Install Requirements (into embedded Python)
@@ -212,10 +214,13 @@ $ShortcutObject.IconLocation = "$IconPath"
 $ShortcutObject.WorkingDirectory = $InstallDir
 $ShortcutObject.Save()
 
+Copy-Item -Recurse -Force ".\scripts" -Destination $InstallDir
+Copy-Item -Force ".\uninstall.bat" -Destination $InstallDir
+
 Write-Host ""
-Write-Host "Installation complete!"
-Write-Host "Fully isolated Python environment installed."
 Write-Host "To uninstall: delete $InstallDir"
+Write-Host "Fully isolated Python environment installed."
+Write-Host "Installation completed Successfully!"
 }
 catch{
     Write-Host " X Failed, some error occurred during installation"

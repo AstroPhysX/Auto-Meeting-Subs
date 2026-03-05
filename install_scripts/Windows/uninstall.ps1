@@ -8,6 +8,8 @@ $AppID = "auto-meeting-subs"
 $UserProfile = [Environment]::GetFolderPath("UserProfile")
 $InstallDir = "$UserProfile\AppData\Local\$AppID"
 $StartMenuDir = "$UserProfile\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\$AppID"
+$DesktopDir = [Environment]::GetFolderPath("Desktop")
+$DesktopShortcut = "$DesktopDir\$AppName.lnk"
 
 Write-Host "Uninstalling $AppName..."
 
@@ -25,6 +27,14 @@ if (Test-Path $StartMenuDir) {
     Write-Host "Removed Start Menu shortcuts: $StartMenuDir"
 } else {
     Write-Host "Start Menu shortcuts not found: $StartMenuDir"
+}
+
+# Remove Desktop shortcut
+if (Test-Path $DesktopShortcut) {
+    Remove-Item -Force $DesktopShortcut
+    Write-Host "Removed Desktop shortcut: $DesktopShortcut"
+} else {
+    Write-Host "Desktop shortcut not found: $DesktopShortcut"
 }
 
 Write-Host "Uninstallation complete!"

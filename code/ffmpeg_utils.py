@@ -86,18 +86,25 @@ def install_ffmpeg(appdata_dir: Path) -> Path:
 
     if system == "windows":
         # Windows 64-bit full build
-        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip"
+        ffmpeg_url = "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip"
         archive_path = ffmpeg_root / "ffmpeg.zip"
 
         urllib.request.urlretrieve(ffmpeg_url, archive_path)
 
         with zipfile.ZipFile(archive_path, "r") as zip_ref:
             zip_ref.extractall(ffmpeg_root)
+        
+        # Find executables recursively
+        ffmpeg_exe = next(ffmpeg_root.rglob("ffmpeg.exe"))
+        ffprobe_exe = next(ffmpeg_root.rglob("ffprobe.exe"))
+        if not ffmpeg_exe or not ffprobe_exe:
+            raise RuntimeError("FFmpeg binaries not found after extraction")
 
-        extracted = next(ffmpeg_root.glob("ffmpeg-*"))
-        shutil.move(extracted / "bin" / "ffmpeg.exe", ffmpeg_path)
+        # Move them to your bin directory
+        shutil.move(ffmpeg_exe, ffmpeg_dir)
+        shutil.move(ffprobe_exe, ffmpeg_dir)
 
-        shutil.rmtree(extracted)
+        # Cleanup
         archive_path.unlink()
 
     elif system == "darwin":

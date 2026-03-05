@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import filetype
 import json
+import ssl, certifi
 from pathlib import Path
 from datetime import datetime
 from ffmpeg_utils import install_ffmpeg
@@ -13,6 +14,9 @@ def setup_app_environment():
         base_dir = Path(os.getenv("LOCALAPPDATA"))
     else:
         base_dir = Path.home() / ".local" / "share"
+
+    #turns on urllib.requests used to download ffmpeg
+    ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
     appdata_dir = base_dir / "auto-meeting-subs"
     appdata_dir.mkdir(parents=True, exist_ok=True)
