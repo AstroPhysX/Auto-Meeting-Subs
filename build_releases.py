@@ -21,7 +21,7 @@ PLATFORMS = {
     },
     "mac": {
         "folder_name": "Mac",
-        "installers": ["install.command", "uninstall.command"],
+        "installers": ["install.command", "launcher_builder.c","uninstall.command"],
         "zip_name": f"Auto-Meeting-Subs-mac.zip"
     },
     "windows": {

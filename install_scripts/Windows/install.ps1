@@ -1,8 +1,10 @@
 # Requires: PowerShell 5+
 # Run with:
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\install.ps1
+Set-PSRepository PSGallery -InstallationPolicy Trusted
+
 if (-not (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)){
-    Install-Module ThreadJob -Scope CurrentUser
+    Install-Module ThreadJob -Scope CurrentUser -Force -Confirm:$false
 }
 
 try{

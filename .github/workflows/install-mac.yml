@@ -37,12 +37,12 @@ jobs:
         run: test -x "$HOME/.local/share/Auto-Meeting-Subs/python/bin/python3.10"
 
       - name: Verify launcher created
-        run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command"
+        run: test -f "$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/Auto-Meeting-Subs""
 
       - name: Test first run via launcher
         shell: bash
         run: |
-          LAUNCHER="$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/launch.command"
+          LAUNCHER="$HOME/Applications/Auto-Meeting-Subs.app/Contents/MacOS/Auto-Meeting-Subs"
           
           echo "Running launcher: $LAUNCHER..."
           set -o errexit  # exit on any error
@@ -53,4 +53,4 @@ jobs:
           
       - name: Show installed files (debug)
         if: failure()
-        run: ls -R "$HOME/.local/share/Auto-Meeting-Subs" || true
+        run: ls -R "$HOME/.local/share/auto-meeting-subs" || true

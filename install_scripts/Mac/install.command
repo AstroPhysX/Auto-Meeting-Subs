@@ -13,12 +13,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENSSL_VERSION="3.3.1"
 OPENSSL_PREFIX="$APP_INSTALL_DIR/vendor/openssl"
 
-# Paths inside the .app bundle
-APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
-APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
-APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
-DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.icns"
-
 LOG_FILE="$SCRIPT_DIR/install.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 : > "$LOG_FILE"   # clear old log
@@ -127,13 +121,24 @@ run_step "Checking pip installed" "$PYTHON_BIN" -m ensurepip --upgrade
 run_step "Updating pip..." "$PYTHON_BIN" -m pip install --upgrade pip
 
 # ----------------------------
+# Install Python dependencies
+# ----------------------------
+run_step "Downloading and Installing Python Modules" "$PYTHON_BIN" -m pip install -r "$APP_INSTALL_DIR/requirements.txt"
+
+# ----------------------------
 # Prepare app directories
 # ----------------------------
+# Paths inside the .app bundle
+APP_BUNDLE="$HOME/Applications/$APP_NAME.app"
+APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
+APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
+DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.png"
+
 mkdir -p "$APP_INSTALL_DIR" "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
 
 # Copy code and icons
 cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
-cp "$SCRIPT_DIR/icons/mac.icns" "$DESKTOP_ICON"
+cp "$SCRIPT_DIR/icons/linux.png" "$DESKTOP_ICON"
 
 # Moving the uninstall script
 if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
@@ -141,22 +146,19 @@ if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
     chmod +x "$APP_INSTALL_DIR/uninstall.command"
 fi
 
-
-# ----------------------------
-# Install Python dependencies
-# ----------------------------
-run_step "Downloading and Installing Python Modules" "$PYTHON_BIN" -m pip install -r "$APP_INSTALL_DIR/requirements.txt"
-
 # ----------------------------
 # Create launcher script inside .app
 # ----------------------------
 EXECUTABLE="$APP_MACOS_DIR/$APP_NAME"
-cat > "$EXECUTABLE" << EOF
-#!/usr/bin/env bash
-exec "$PYTHON_BIN" "$APP_INSTALL_DIR/main.py" "\$@"
-EOF
+sed \
+ -e "s|PYTHON_BIN_PLACEHOLDER|$PYTHON_BIN|" \
+ -e "s|APP_INSTALL_DIR_PLACEHOLDER|$APP_INSTALL_DIR|" \
+ "$SCRIPT_DIR/launcher_builder.c" > "$SCRIPT_DIR/built_launcher.c"
 
+clang "$SCRIPT_DIR/built_launcher.c" -O2 -arch arm64 -arch x86_64 -o "$EXECUTABLE"
 chmod +x "$EXECUTABLE"
+
+rm "$SCRIPT_DIR/built_launcher.c"
 
 # ----------------------------
 # Create Info.plist
@@ -168,18 +170,22 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
 <dict>
     <key>CFBundleName</key>
     <string>$APP_NAME</string>
+
     <key>CFBundleDisplayName</key>
     <string>$APP_NAME</string>
+
     <key>CFBundleIdentifier</key>
     <string>com.example.$APP_ID</string>
+
     <key>CFBundleVersion</key>
     <string>1.0</string>
+
     <key>CFBundleExecutable</key>
     <string>$APP_NAME</string>
+
     <key>CFBundleIconFile</key>
-    <string>AppIcon.icns</string>
-    <key>LSUIElement</key>
-    <true/>
+    <string>AppIcon.png</string>
+    
 </dict>
 </plist>
 EOF
