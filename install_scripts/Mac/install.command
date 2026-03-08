@@ -120,6 +120,18 @@ fi
 run_step "Checking pip installed" "$PYTHON_BIN" -m ensurepip --upgrade
 run_step "Updating pip..." "$PYTHON_BIN" -m pip install --upgrade pip
 
+#making
+mkdir -p "$APP_INSTALL_DIR" 
+
+# Copy code and icons
+cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
+
+# Moving the uninstall script
+if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
+    cp "$SCRIPT_DIR/uninstall.command" "$APP_INSTALL_DIR/"
+    chmod +x "$APP_INSTALL_DIR/uninstall.command"
+fi
+
 # ----------------------------
 # Install Python dependencies
 # ----------------------------
@@ -134,17 +146,8 @@ APP_MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
 DESKTOP_ICON="$APP_RESOURCES_DIR/AppIcon.png"
 
-mkdir -p "$APP_INSTALL_DIR" "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
-
-# Copy code and icons
-cp -r "$SCRIPT_DIR/code/"* "$APP_INSTALL_DIR/"
+mkdir -p "$APP_MACOS_DIR" "$APP_RESOURCES_DIR"
 cp "$SCRIPT_DIR/icons/linux.png" "$DESKTOP_ICON"
-
-# Moving the uninstall script
-if [ -f "$SCRIPT_DIR/uninstall.command" ]; then
-    cp "$SCRIPT_DIR/uninstall.command" "$APP_INSTALL_DIR/"
-    chmod +x "$APP_INSTALL_DIR/uninstall.command"
-fi
 
 # ----------------------------
 # Create launcher script inside .app
