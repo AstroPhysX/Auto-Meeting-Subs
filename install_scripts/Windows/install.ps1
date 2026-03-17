@@ -3,8 +3,10 @@
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\install.ps1
 Set-PSRepository PSGallery -InstallationPolicy Trusted
 
-if (-not (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)){
-    Install-Module ThreadJob -Scope CurrentUser -Force -Confirm:$false
+if (-not (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Module -ListAvailable ThreadJob)) {
+        Install-Module ThreadJob -Scope CurrentUser -Force -Confirm:$false
+    }
 }
 
 try{

@@ -10,11 +10,14 @@ HandBrakeCLI.exe
 HandBrake-1.8.1-x86_64-Win_GUI.exe
 test functions.ipynb
 testfile.py
+**/__pycache__/
+logs
+linux my config.ini
+#Evironments
+310envdistrobox/
 3.10env/
 auto-meeting-subs-env/
 mlenv/
 testenv/
-**/__pycache__/
 310envdistrobox/
-logs
-linux my config.ini
+guitesting/
