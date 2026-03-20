@@ -140,3 +140,11 @@ def get_creation_date(file_path):
 
     # Fallback
     return os.path.getmtime(file_path)
+
+def generate_filename(config_path, date_obj):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    template = config["format"]["filename"]
+    return date_obj.strftime(template)
+    

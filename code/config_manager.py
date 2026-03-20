@@ -59,3 +59,69 @@ def read_config(config_file):
     developer = config['DEV']['Developer_debug']
     
     return token, output_dir, English, subtitle_format, compress, batch_size, developer
+
+# GUI Functions
+def save_config(config_file, data: dict):
+    config = configparser.ConfigParser(interpolation=None)
+
+    config['TOKEN'] = {
+        'token': data['token']
+    }
+
+    config['OUTPUT'] = {
+        'output_dir': data['output_dir'],
+        'naming_convention': data['naming_convention'],
+        'video_extension': data['video_ext'],
+        'audio_extension': data['audio_ext']
+    }
+
+    config['LANGUAGE'] = {
+        'English': data['language']
+    }
+
+    config['SUBTITLE'] = {
+        'Sub_format': data['subtitle_format']
+    }
+
+    config['COMPRESSION'] = {
+        'mode': data['compression_mode'],
+        'value': str(data['compression_value'])
+    }
+    
+    config['Batch_Size']={
+        'Batch_Size': 8  # reduce if low on GPU mem
+    }
+
+    config['DEV'] = {
+        'Developer_debug': 'n'
+    }
+
+    if platform.system() == "Linux":
+        config['LINUX'] = {
+            'sudo_password': data.get('sudo_password', '')
+        }
+
+    with open(config_file, 'w') as f:
+        config.write(f)
+
+
+def load_config(config_file):
+    config = configparser.ConfigParser(interpolation=None)
+
+    if not os.path.exists(config_file):
+        return None
+
+    config.read(config_file)
+
+    return {
+        "token": config['TOKEN'].get('token', ''),
+        "output_dir": config['OUTPUT'].get('output_dir', ''),
+        "naming_convention":config['OUTPUT'].get('naming_convention',''),
+        "video_ext":config['OUTPUT'].get('video_extension',''),
+        "audio_ext":config['OUTPUT'].get('audio_extension',''),
+        "language": config['LANGUAGE'].get('English', 'n'),
+        "subtitle_format": config['SUBTITLE'].get('Sub_format', 'srt'),
+        "compression_mode": config['COMPRESSION'].get('mode', 'CQ'),
+        "compression_value": int(config['COMPRESSION'].get('value', 18)),
+        "sudo_password": config.get('LINUX', 'sudo_password', fallback='')
+    }

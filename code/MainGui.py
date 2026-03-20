@@ -1,19 +1,24 @@
-import sys
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))  # ensure sibling modules can be imported
+
+from file_utils import setup_app_environment, audio_or_video, get_creation_date
+APPDATA_DIR = setup_app_environment()
+from config_manager import save_config, load_config
 import subprocess
 import json
-from file_utils import get_creation_date
+
 from datetime import datetime
 import platform
-import os
+
+# GUI specific Imports
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QCheckBox, QProgressBar,
     QFileDialog, QDateEdit, QMenuBar, QDialog,
     QLabel,QLineEdit, QComboBox, QSpinBox, QRadioButton, QAbstractItemView,
-    QMenu
+    QMenu, QMessageBox
 )
-
 from PySide6.QtCore import Qt, QDate, QUrl
 from PySide6.QtGui import QIcon, QDesktopServices
 
@@ -23,20 +28,21 @@ from PySide6.QtGui import QIcon, QDesktopServices
 # -----------------------------
 
 class SettingsDialog(QDialog):
-
+    
     def __init__(self):
         super().__init__()
-
+        print("Opening Settings")
         self.setWindowTitle("AMS Settings")
         self.setWindowIcon(QIcon("linux.png"))
         self.setMinimumWidth(420)
+        self.setMinimumHeight(800)
 
         layout = QVBoxLayout()
         # ---------------------------
         # Default Output Directory
         # ---------------------------
 
-        layout.addWidget(QLabel("Default Output Directory"))
+        layout.addWidget(QLabel("<b>Default Output Directory</b>"))
 
         folder_layout = QHBoxLayout()
 
@@ -49,13 +55,52 @@ class SettingsDialog(QDialog):
         layout.addLayout(folder_layout)
 
         self.output_button.clicked.connect(self.select_folder)
+
+        #---------------------------
+        # Naming Convention
+        #---------------------------
+        name_con_label = QLabel(f"""
+        <b>File Naming Convention</b><br>
+        - This will be the base name for the ouputed files, DO NOT INCLUDE FILE EXTENSIONS.<br>
+        - %Y = 4 digit year; %y = 2 digit year; %m = 2 digit month; %d = 2 digit day<br>
+        - For options please visit <a href="https://www.pythonmorsels.com/strptime/">strftime</a>
+        """)
+        name_con_label.setOpenExternalLinks(True)  # Opens the link in the default browser
+        name_con_label.setTextInteractionFlags(Qt.TextBrowserInteraction)  # Enables link detection
+        name_con_label.setWordWrap(True)
+        layout.addWidget(name_con_label)
+
+        self.naming_convention = QLineEdit()
+        layout.addWidget(self.naming_convention)
+        self.naming_convention.setText(f'Meeting %Y.%m.%d')
+
+        #--------------------------------
+        # Output video and Audio format
+        #--------------------------------
+        layout.addWidget(QLabel("<b>Video and Audio file ouput format</b>"))
+        
+        video_layout = QHBoxLayout()
+        video_layout.addWidget(QLabel("Video Format:"))
+        self.v_extension = QComboBox()
+        self.v_extension.addItems(['mp4','mkv'])
+        video_layout.addWidget(self.v_extension)
+        layout.addLayout(video_layout)
+        
+        audio_layout = QHBoxLayout()
+        audio_layout.addWidget(QLabel("Audio Format:"))
+        self.a_extension = QComboBox()
+        self.a_extension.addItems(['mp3','flac','wav'])
+        audio_layout.addWidget(self.a_extension)
+        layout.addLayout(audio_layout)
+
         #---------------------------
         # Language
         #--------------------------
-        layout.addWidget(QLabel("Meeting language"))
+        layout.addWidget(QLabel("<b>Meeting language</b>"))
 
         self.lang_english = QRadioButton("English")
         self.lang_other = QRadioButton("Other")
+        self.lang_other.setChecked(True)
 
         layout.addWidget(self.lang_english)
         layout.addWidget(self.lang_other)
@@ -63,8 +108,13 @@ class SettingsDialog(QDialog):
         # ---------------------------
         # Compression Settings
         # ---------------------------
-
-        layout.addWidget(QLabel("Compression Mode\n -CQ maintains that level of quality, therefore if there is alot of in the video then it will maintain a consistent fluid quality throughout the video (can end up in larger files if there is lots of motion)\n -CBR maintains a bitrate, therefore if there is alot of in the video then it will degrade the image quality to keep the MB/s of video constant."))
+        compression_label = QLabel("""
+            <b>Compression Mode</b><br>
+            - CQ maintains that level of quality, therefore if there is alot of in the video then it will maintain a consistent fluid quality throughout the video (can end up in larger files if there is lots of motion)<br>
+            - CBR maintains a bitrate, therefore if there is alot of in the video then it will degrade the image quality to keep the MB/s of video constant."""
+        )
+        compression_label.setWordWrap(True)
+        layout.addWidget(compression_label)
 
         compression_layout = QHBoxLayout()
 
@@ -87,12 +137,26 @@ class SettingsDialog(QDialog):
         # initialize default values
         self.update_compression_mode(self.compression_mode.currentText())
         
+        #----------------------------
+        # Sub format
+        #----------------------------
+        sub_format_label = QLabel("""
+            <b>Subtitle Format</b><br>
+            - If you are unfamiliar with these formats, I highly recommend to choose 'srt' as it is one of the most compatible formats."""
+        )
+        sub_format_label.setWordWrap(True)
+        layout.addWidget(sub_format_label)
+
+        self.sub_format = QComboBox()
+        self.sub_format.addItems(['srt','txt','vtt','tsv','aud','json'])
+
+        layout.addWidget(self.sub_format)
 
         # ---------------------------
         # HuggingFace Token
         # ---------------------------
 
-        layout.addWidget(QLabel("HuggingFace API Token"))
+        layout.addWidget(QLabel("<b>HuggingFace API Token (Required)</b>"))
 
         self.hf_token = QLineEdit()
         self.hf_token.setEchoMode(QLineEdit.Password)
@@ -105,15 +169,16 @@ class SettingsDialog(QDialog):
         # ---------------------------
 
         if platform.system() == "Linux":
-
-            layout.addWidget(QLabel("Sudo Password (Linux only)\n - Note: This is only used to activate and deactivate Ollama to save VRAM when summarizing."))
+            password_label = QLabel("""
+            <b>Sudo Password (Linux only)</b><br>
+            - Note: This is only used to activate and deactivate Ollama to save VRAM when summarizing.""")
+            password_label.setWordWrap(True)
+            layout.addWidget(password_label)
 
             self.sudo_password = QLineEdit()
             self.sudo_password.setEchoMode(QLineEdit.Password)
 
             layout.addWidget(self.sudo_password)
-
-        
 
         # ---------------------------
         # Save Button
@@ -124,6 +189,9 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.save_button)
 
         self.setLayout(layout)
+        self.save_button.clicked.connect(self.save_settings)
+
+        self.load_settings()
 
     def update_compression_mode(self, mode):
             if "CQ" in mode:
@@ -143,7 +211,7 @@ class SettingsDialog(QDialog):
     # ---------------------------
 
     def select_folder(self):
-
+        print("Selecting output folder")
         folder = QFileDialog.getExistingDirectory(
             self,
             "Select Default Output Folder"
@@ -151,6 +219,73 @@ class SettingsDialog(QDialog):
 
         if folder:
             self.output_path.setText(folder)
+    
+    def save_settings(self):
+        config_dir = os.path.join(APPDATA_DIR,'GUIconfig.ini')
+        data = {
+            "output_dir": self.output_path.text(),
+            "naming_convention": self.naming_convention.text(),
+            "video_ext": self.v_extension.currentText(),
+            "audio_ext": self.a_extension.currentText(),
+            "language": 'y' if self.lang_english.isChecked() else 'n',
+            "subtitle_format": self.sub_format.currentText(),
+            "token": self.hf_token.text(),
+            "compression_mode": "CQ" if "CQ" in self.compression_mode.currentText() else "CBR",
+            "compression_value": self.compression_value.value(),
+        }
+        if len(data['token']) == 0 :
+            token_val = "No Hf token"
+        else:
+            token_val = "Token inputed"
+        
+        language = 'english' if data['language'] == 'y' else 'other language'
+
+        if hasattr(self, "sudo_password"):
+            data["sudo_password"] = self.sudo_password.text()
+            if len(data['sudo_password']) > 0:
+                print("sudo given")
+            else:
+                print("---->sudo not given")
+
+        save_config(config_dir, data)
+
+        print(f"Settings saved:\n-{data['output_dir']}\n-{data['naming_convention']}\n-{data['video_ext']},\n-{data['audio_ext']}\n-{language}\n-{data['subtitle_format']}\n-{token_val}\n-{data['compression_mode']}:{data['compression_value']}")
+
+        self.accept()
+
+    def load_settings(self):
+        config_dir = os.path.join(APPDATA_DIR,'GUIconfig.ini')
+        config = load_config(config_dir)
+        if not config:
+            print("No GUIconfig.ini file found")
+            return
+
+        self.output_path.setText(config["output_dir"])
+
+        self.naming_convention.setText(config["naming_convention"])
+
+        self.v_extension.setCurrentText(config["video_ext"])
+        self.a_extension.setCurrentText(config["audio_ext"])
+
+        if config["language"] == 'y':
+            self.lang_english.setChecked(True)
+        else:
+            self.lang_other.setChecked(True)
+
+        self.sub_format.setCurrentText(config["subtitle_format"])
+        self.hf_token.setText(config["token"])
+
+        if config["compression_mode"] == "CQ":
+            self.compression_mode.setCurrentIndex(0)
+        else:
+            self.compression_mode.setCurrentIndex(1)
+
+        self.update_compression_mode(self.compression_mode.currentText())
+        self.compression_value.setValue(config["compression_value"])
+
+        if hasattr(self, "sudo_password"):
+            self.sudo_password.setText(config["sudo_password"])
+        print("GUIconfig.ini loaded")
 
 # -----------------------------
 # Table Widget
@@ -243,8 +378,22 @@ class MediaTable(QTableWidget):
     # -----------------------------
     # Add row
     # -----------------------------
+    def show_invalid_file_error(parent=None, filepath=None):
+        msg = QMessageBox(parent)
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Invalid File")
+        msg.setText("Unsupported file type")
+        msg.setInformativeText("The selected file is not a valid audio or video file.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
 
     def add_file_row(self, filepath):
+        file_directory = Path(input_file).parent
+        # File check
+        if audio_or_video(filepath) == 'unknown':
+            self.show_invalid_file_error(filepath=filepath)
+            return
+
         # Creating row
         row = self.rowCount()
         self.insertRow(row)
