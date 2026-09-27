@@ -55,19 +55,17 @@ def main():
         file_directory = Path(input_file).parent
     
         # Get the date from the metadata file or user
-        date = get_creation_date(input_file)
-        if not date:
+        dt = get_creation_date(input_file)
+        if not dt:
             print("Date not found in the metadata.")
             while True:
                 try:
-                    dt = datetime.strptime(input("Enter date (yyyy/mm/dd): ").strip(),"%Y/%m/%d")
+                    dt = datetime.strptime(input("Enter date (yyyy/mm/dd): ").strip(), "%Y/%m/%d")
                     break
                 except ValueError:
                     print("Invalid date. Please use yyyy/mm/dd.")
-            formatted_date = dt.strftime("%Y.%m.%d")
-        else:
-            # Format the date as yy/mm/dd
-            formatted_date = time.strftime("%Y.%m.%d", time.localtime(date))
+
+        formatted_date = dt.strftime("%Y.%m.%d")
 
         #Creating WAV file
         new_filename = f"Meeting {formatted_date}"

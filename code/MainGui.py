@@ -1,4 +1,5 @@
 import sys, os
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(__file__))  # ensure sibling modules can be imported
 
 from file_utils import setup_app_environment, audio_or_video, get_creation_date
@@ -33,7 +34,8 @@ class SettingsDialog(QDialog):
         super().__init__()
         print("Opening Settings")
         self.setWindowTitle("AMS Settings")
-        self.setWindowIcon(QIcon("linux.png"))
+        icon_location = os.path.join(APPDATA_DIR,'icons','linux.png')
+        self.setWindowIcon(QIcon(icon_location))
         self.setMinimumWidth(420)
         self.setMinimumHeight(800)
 
@@ -388,9 +390,11 @@ class MediaTable(QTableWidget):
         msg.exec()
 
     def add_file_row(self, filepath):
-        file_directory = Path(input_file).parent
+        input_file_directory = Path(filepath).parent
+        input_filename = Path(filepath).name
         # File check
-        if audio_or_video(filepath) == 'unknown':
+        A_or_V = audio_or_video(filepath)
+        if A_or_V == 'unknown':
             self.show_invalid_file_error(filepath=filepath)
             return
 
@@ -398,7 +402,7 @@ class MediaTable(QTableWidget):
         row = self.rowCount()
         self.insertRow(row)
 
-        self.setItem(row, 0, QTableWidgetItem(filepath))
+        self.setItem(row, 0, QTableWidgetItem(input_filename))
         
         # Creating options to transcribe, compress or summarize
         options = self.create_options_widget()
@@ -409,15 +413,23 @@ class MediaTable(QTableWidget):
         date_widget = QDateEdit()
         date_widget.setCalendarPopup(True)
         
-        timestamp = get_creation_date(filepath)
-        dt_from_timestamp = datetime.fromtimestamp(timestamp)
-        qdate = QDate(dt_from_timestamp.year, dt_from_timestamp.month, dt_from_timestamp.day)
+        dt = get_creation_date(filepath)
+        qdate = QDate(dt.year, dt.month, dt.day)
         date_widget.setDate(qdate)
 
         self.setCellWidget(row, 2, date_widget)
         # Output file dir
-        output = filepath + ".processed"
-        self.setItem(row, 3, QTableWidgetItem(output))
+        config_dir = os.path.join(APPDATA_DIR,'GUIconfig.ini')
+        config = load_config(config_dir)
+        if config['output_dir'] is None:
+            output_dir = input_file_directory
+        else:
+            output_dir = config['output_dir']
+        
+        output_filename = dt.strftime(config['naming_convention'])
+
+        output_filepath = os.path.join(output_dir, output_filename)
+        self.setItem(row, 3, QTableWidgetItem(output_filepath))
 
         # Progress Bar
         progress = QProgressBar()
@@ -503,7 +515,8 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Auto-Meeting-Subs")
-        self.setWindowIcon(QIcon("linux.png"))
+        icon_location = os.path.join(APPDATA_DIR,'icons','linux.png')
+        self.setWindowIcon(QIcon(icon_location))
         container = QWidget()
         layout = QVBoxLayout(container)
 

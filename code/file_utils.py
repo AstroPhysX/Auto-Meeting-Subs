@@ -132,14 +132,13 @@ def get_creation_date(file_path):
         )
 
         if creation_time:
-            dt = datetime.fromisoformat(creation_time.replace("Z", "+00:00"))
-            return dt.timestamp()
+            return datetime.fromisoformat(creation_time.replace("Z", "+00:00"))
 
     except Exception as e:
         print(f"Warning: Could not read creation_time from metadata: {e}")
 
     # Fallback
-    return os.path.getmtime(file_path)
+    return datetime.fromtimestamp(os.path.getmtime(file_path))
 
 def generate_filename(config_path, date_obj):
     config = configparser.ConfigParser()
